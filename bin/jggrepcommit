@@ -1,0 +1,15 @@
+#!/bin/bash
+if [ $# -eq 0 ]; then
+    echo "> Error: no pattern provided."
+    exit
+else
+    oput=`git log --pretty=format:"%h %an %s" | grep "$@"`
+    if [ -n "${oput}" ]; then
+        echo "${oput}"
+        echo -n "${oput:0:7}" | clip
+        echo -e "\n> ${oput:0:7} has been copied to clipboard."
+    else
+        echo -e "\n> Nothing was found!"
+    fi
+fi
+    

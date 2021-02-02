@@ -1,0 +1,108 @@
+#!/bin/bash
+#20210215
+echo "Johnny's Git Kit"
+echo "https://github.com/lxvs/jg"
+echo 'Last Update: Feb 15, 2021'
+if [ $# -eq 0 ]; then
+    echo ''
+    echo -e "Tips: First letter of each command after 'jg' are unique,\n\
+      so you can type 'jg' and the initial letter, and press [Tab].\n\
+      For example,\n\
+      \$ gjc [Tab] for \$ gjcommitnumber."
+    echo ''
+    jgbreak="yes"
+    echo -e "use '\$ jg jgc' to show help on 'jgcommitnumber'"
+    echo ''
+    echo 'Press any key to continue, Ctrl-C to break'
+fi
+nl="\n            "
+Showh(){
+    if [ -n "${jgbreak}" ]; then echo ""; read -p "..."; fi
+    echo -e "\nJohnny's Git $1 v.$2"
+    echo -e "\ncommand:    $3"
+    shift 3
+    echo -e "\nusage:      $*"
+}
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jga" ]; then Showh\
+    'Amend Last Commit'\
+    '2021.2.6'\
+    'jgamendlastcommit ["<messages>"]'\
+    "Amend your last commit, and change the commit message to <message>.${nl}\
+If <message> is empty, use the same message in last commit."; fi
+
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jgc" ]; then Showh\
+    'Commit Number'\
+    '2021.2.2'\
+    'jgcommitnumber [<length> = 8]'\
+    "Copy the first <length> characters of commit number to clipboard."; fi
+
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jgg" ]; then Showh\
+    'GREP Commit'\
+    '2021.2.15'\
+    'jggrepcommit [<option>] <pattern>'\
+    "Search for commits that meet the given regex pattern.${nl}\
+And copy the first found commit number to clipboard.${nl}\
+${nl}\
+Note: '\\\\' itself needs another '\\\\' to be escaped in Bash.${nl}\
+E.g. if searching for '[', you should use pattern '\\\\\\\\['${nl}\
+${nl}\
+<option> is same with grep command.${nl}\
+Use -F or --fixed-strings option to disable regex.${nl}\
+${nl}\
+Try 'grep --help' for more information."; fi
+
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jgj" ]; then Showh\
+    'Just Pull It'\
+    '2020.11.20'\
+    'jgjustpullit [<clean>]'\
+    "!!! WARNING !!! You will LOSE ALL local changes on executing this command.${nl}\
+It will HARD reset working tree and pull.${nl}\
+In case of unintended discard of working tree,${nl}\
+please add some argument to confirm the operation,${nl}\
+when there are local changes.${nl}\
+e.g. '\$ jgjustpullit 1' or '\$ jgjustpullit clean'.${nl}\
+With argument 'clean', it will clean the working tree before reseting and pulling.\n\
+\n\
+Equivalent: [ git clean -df ]${nl}\
+git reset --hard origin/HEAD${nl}\
+git pull"; fi
+
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jgn" ]; then Showh\
+    'Number for the History'\
+    '2021.2.15'\
+    'jgnumberforthehistory'\
+    "Output a list of modified/added/removed files with leading numbers${nl}\
+before each line, copied to the clipboard.${nl}\
+${nl}\
+If there are staged changes, it will ignore the unstaged.${nl}\
+If there is no changes, it will compare with the 2nd last commit.${nl}\
+${nl}\
+For example, you${nl}\
+    > modified folderA/file.a and folderB/file.b${nl}\
+    > Added a file new.c${nl}\
+    > Removed a file sub.d${nl}\
+After execution, you will get${nl}\
+    RelatedFiles:${nl}\
+    Modified:${nl}\
+    1. folderA\\\\file.a${nl}\
+    2. folderB\\\\file.b${nl}\
+    Added:${nl}\
+    1. new.c${nl}\
+    Removed:${nl}\
+    1. sub.d${nl}\
+in your clipboard (and in ~/NtmOutput.txt)"; fi
+
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jgp" ]; then Showh\
+    'Push'\
+    '2021.2.2'\
+    'jgpush [<branch> = master]'\
+    "Push local commits to Gerrit for review.\n\
+\n\
+Equivalent: git push origin HEAD:refs/for/<branch>"; fi
+
+if [ $# -eq 0 ] || [ "${1:0:3}" == "jgs" ]; then Showh 'Stash'\
+    '2021.1.30'\
+    'jgstash "<label>"'\
+    "Stash local changes with message:'<commit>  <label>',${nl}\
+including untracked files,${nl}\
+where <commit> means the short commit number of current working tree."; fi

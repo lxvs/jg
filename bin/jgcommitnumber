@@ -1,0 +1,5 @@
+#!/bin/bash
+commitmsg=`git log -1 --pretty=format:"%H"`
+cliped=${commitmsg: 0: ${1:-8}}
+echo "${cliped}"
+echo -n "${cliped}" | clip
