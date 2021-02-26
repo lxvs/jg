@@ -10,7 +10,6 @@ if defined lastupdt echo Last updated: %lastupdt:~1%
 echo;
 echo ^> Please choose what to do:
 echo   ^| 1     Deploy Johnny's Git Kit
-echo   ^| 2     Show help
 echo   ^| 0     Remove Johnny's Git Kit
 :Choose
 echo;
@@ -20,7 +19,6 @@ set /p selection=
 if "%selection%" EQU "" goto Deploy
 if "%selection%" EQU "1" goto Deploy
 if "%selection%" EQU "0" goto Remove
-if "%selection%" EQU "2" call:ShowHelp & goto Choose
 echo ^> Invalid input.
 goto Choose
 :Deploy
@@ -49,8 +47,6 @@ echo;
 if "%1" EQU "1" (
     echo ^> Deployment finished.
     echo;
-    pause
-    call:ShowHelp
     goto:eof
 )
 if "%1" EQU "0" (
@@ -58,30 +54,6 @@ if "%1" EQU "0" (
     goto:eof
 )
 echo ^> Warning 330: an unreachable place is reached with parameter '%1'.
-goto:eof
-:ShowHelp
-echo;
-echo - HELP -
-echo;
-echo  ^| https://github.com/lxvs/jg
-echo  ^|
-echo  ^| It adds several more convenvient commands to Git Bash.
-echo  ^|
-echo  ^| Open Git Bash and use command 'jg' for more details.
-echo  ^|
-echo  ^|
-echo  ^| The term Johnny Git is come from 'jg', rather than otherwise.
-echo  ^|
-echo  ^| 'jg' was chosen as the prefix of all these commands because
-echo  ^| there is hardly any built-in command that initials with 'jg'.
-echo  ^|
-echo  ^| Besides, all these commands has the unique initial after 'jg'.
-echo  ^|
-echo  ^| Therefore, for example, you can simply type 'jgc' and
-echo  ^| press [Tab] to get command 'jgcommitnumber'.
-echo  ^|
-echo  ^| Thanks for using!
-echo;
 goto:eof
 :SomethingIsWrong
 echo Something is wrong!
