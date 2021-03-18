@@ -4,10 +4,6 @@ title Johnny's Git Kit Deployment
 pushd %~dp0
 echo  Johnny's Git Kit Deployment
 echo;
-if not exist bin/jg (echo ^> Error: file bin/jg not found!) & (echo;) & goto End
-for /f "skip=1" %%i in (bin/jg) do if not defined lastupdt set lastupdt=%%i
-if defined lastupdt echo Last updated: %lastupdt:~1%
-echo;
 echo ^> Please choose what to do:
 echo   ^| 1     Deploy Johnny's Git Kit
 echo   ^| 0     Remove Johnny's Git Kit

@@ -85,6 +85,40 @@ If there was no argument provided, nothing would be done.
 
 
 
+# :bar_chart: Make Some Diff
+
+#### Synopsis
+
+```bash
+jgmakesomediff [-d <output-dir>] [-o <orig-dir>] [-m <mod-dir>] [<orig-revision>] [<mod-revision>]
+```
+
+#### Description
+
+Export two directories to `<output-dir>` for compare. One is named `<mod-dir>`, containing modified files in revision `<mod-revision>` compared to revision `<orig-revision>`, the other named `<orig-dir>` containing those files in `<orig-revision>`.
+
+#### Default Value of Parameters
+
+| Parameter         | Default            |
+| ----------------- | ------------------ |
+| `<output-dir>`    | `$HOME`/Desktop/   |
+| `<orig-dir>`      | orig               |
+| `<mod-dir>`       | mod                |
+| `<orig-revision>` | `@` (means `HEAD`) |
+| `<mod-revision>`  | (working tree)     |
+
+#### Examples
+
+`jgmakesomediff `
+
+* Export modified/added files in working tree compared to HEAD to folder `~/Desktop/mod`, those modified files and removed files in HEAD to folder `~/Desktop/orig`.
+
+`jgmakesomediff -d $HOME/Desktop/last-commit-diff -o original -m modified @^ @`
+
+* Export modified/added files in last commit compared to second last commit to folder `~/Desktop/last-commit-diff/modified`, those modified files and removed files in second last commit to folder `~/Desktop/last-commit-diff/original`.
+
+
+
 ## :musical_note: Number for the History
 
 #### Synopsis

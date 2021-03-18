@@ -1,0 +1,53 @@
+#!/bin/bash
+
+OPTIND=1
+outDir="$HOME/Desktop"
+modDir="mod"
+origDir="orig"
+
+while getopts "d:o:m:" opt; do
+    case "$opt" in
+        d)  outDir=$OPTARG
+            ;;
+        o)  origDir=$OPTARG
+            ;;
+        m)  modDir=$OPTARG
+            ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[[ "${1:-}" = "--" ]] && shift
+
+revOrig="@"
+revMod=""
+[[ "${1:-}" ]] && revOrig=$1
+[[ "${2:-}" ]] && revMod=$2
+
+mkdir -p $outDir/$origDir/ $outDir/$modDir/
+
+diffOrig=`git diff --diff-filter=a --name-only $revOrig $revMod 2>/dev/null`
+for origFile in $diffOrig
+do
+    if [[ "$origFile" == *"/"* ]]; then
+        origFileDir=${origFile%/*}
+        mkdir -p $outDir/$origDir/$origFileDir
+    fi
+    git show $revOrig:$origFile > $outDir/$origDir/$origFile
+done
+
+diffMod=`git diff --diff-filter=d --name-only $revOrig $revMod 2>/dev/null`
+[[ "$diffMod" ]] || exit 0
+if [[ "$revMod" ]]; then
+    for modFile in $diffMod
+    do
+        if [[ "$modFile" == *"/"* ]]; then
+            modFileDir=${modFile%/*}
+            mkdir -p $outDir/$modDir/$modFileDir
+        fi
+        git show $revMod:$modFile > $outDir/$modDir/$modFile
+    done
+else
+    cp --parents $diffMod $outDir/$modDir/
+fi

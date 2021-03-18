@@ -1,0 +1,5 @@
+2021-03-19  lxvs
+
+	* NEW: jgmakesomediff, export origin/mod files, keep hierarchy. Will
+	       implement checking for existing directories in next commit.
+	* DEPRECATE: jg.
