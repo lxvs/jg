@@ -1,4 +1,4 @@
-# Johnny's Git Kit
+# [Johnny's Git Kit](https://github.com/lxvs/jg)
 
 It adds several more convenient commands to Git Bash. Open Git Bash and use command `jg` for more details.
 

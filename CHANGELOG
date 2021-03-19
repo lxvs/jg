@@ -1,4 +1,5 @@
-2021-03-19  lxvs
+1.0.0 - 2021-03-19  lxvs
 
 	* NEW: jgmakesomediff, export origin/mod files, keep hierarchy.
 	* DEPRECATE: jg.
+	* IMPROVEMENT: add GitHub link in README and deploy.bat.

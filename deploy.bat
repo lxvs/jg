@@ -1,8 +1,10 @@
 @echo off
 setlocal
-title Johnny's Git Kit Deployment
+set "_ver=1.0.0"
+title Johnny's Git Kit Deployment %_ver%
 pushd %~dp0
-echo  Johnny's Git Kit Deployment
+echo  Johnny's Git Kit Deployment %_ver%
+echo  https://github.com/lxvs/jg
 echo;
 echo ^> Please choose what to do:
 echo   ^| 1     Deploy Johnny's Git Kit
