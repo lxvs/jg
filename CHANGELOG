@@ -1,3 +1,17 @@
+1.1.0 - 2021-03-20  lxvs
+
+	* NEW: argument parsing for all scripts.
+	* NEW: help info in all scripts.
+	* NEW: add '-r <remote>' option to jgpush.
+	* NEW: remove deprecated commands in deploy.bat.
+	* DEPRECATE: jgpush, jgstash.
+	* DEPRECATE: replace jggrepcommit with jggrep*a*commit.
+	* README: add amend last commit.
+	* README: stop using '= ...' in synopsis to indicate default values.
+	* IMPROVEMENT: in deploy.bat, change label initials to lowercase to
+	               distinguish labels from functions.
+	* IMRPOVEMENT: add more prompts to deploy.bat.
+
 1.0.0 - 2021-03-19  lxvs
 
 	* NEW: jgmakesomediff, export origin/mod files, keep hierarchy.

@@ -5,7 +5,7 @@ gpro=`git status --porcelain`
 if [ -z "${gpro}" ]; then
     commitnumber=`git log -1 --pretty=format:"%H"`
     if [ -n "${commitnumber}" ]; then
-        echo -e "\n> No local changes, trying to compare with 2nd last commit."
+        echo -e "> No local changes, trying to compare with 2nd last commit."
         git reset head~1 > /dev/null
         gpro=`git status --porcelain`
         git reset "${commitnumber}"
@@ -14,7 +14,7 @@ fi
 if [ -n "${gpro}" ]; then
     staged=`echo "${gpro}" | egrep '^M|^A|^R|^D'`
     if [ -n "${staged}" ]; then
-        echo -e "\n> We have something staged, so will ignore the unstaged changes."
+        echo -e "> We have something staged, so will ignore the unstaged changes."
         modtag="^M. "
         addtag="^A. "
         addsub="^A. "
@@ -54,4 +54,4 @@ if [ -n "${gpro}" ]; then
     fi
 fi
 vim -n --noplugin -c '%s,/,\\,ge|%y+|wq' ${fn}
-echo -e "\n> Output copied to clipboard."
+echo -e "> Output has been copied to clipboard."

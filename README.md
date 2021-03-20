@@ -12,12 +12,28 @@ Therefore, for example, you can simply type `jgc` and press <kbd>Tab</kbd> to ge
 
 
 
+# :hammer: Amend Last Commit
+
+#### Synopsis
+
+```bash
+jgamendlastcommit [<message>]
+```
+
+#### Description
+
+Amend last commit, equivalent to `git commit --amend --no-edit` when no `<message>` provided, otherwise equivalent to `git commit --amend -m <message>`.
+
+***Note*** Quote `<message>` when it contains white spaces.
+
+
+
 ## :hash: Commit Number
 
 #### Synopsis
 
 ```bash
-jgcommitnumber [<length> = 8]
+jgcommitnumber [<length>]
 ```
 
 #### Description
@@ -28,12 +44,12 @@ Copy the first `<length>` characters of commit number to clipboard.
 
 
 
-## :eyeglasses: Grep Commit
+## :eyeglasses: Grep a Commit
 
 #### Synopsis
 
 ```bash
-jggrepcommit [<option>] <pattern>
+jggrepacommit [<option>] <pattern>
 ```
 
 #### Description
@@ -58,30 +74,7 @@ Try `grep --help` for more information.
 
 ## :punch: Just Pull It
 
-:warning: Uncommitted changes will be lost after execute it.
-
-#### Synopsis
-
-```bash
-jgjustpullit <arg>
-```
-
-#### Description
-
-HARD reset working tree and pull. In case of unintended discard of local changes, please add some argument to confirm the operation when there are local changes.
-
-It is equivalent to
-
-```bash
-git reset --hard origin/HEAD
-git pull
-```
-
-#### Options
-
-when `<arg>` is `c` or `clean`, it will perform a `git clean -df` before the `reset` and `pull`.
-
-If there was no argument provided, nothing would be done.
+:door: Just pull it has been deprecated since v1.1.0
 
 
 
@@ -161,7 +154,7 @@ in your clipboard, and in file `~/NtmOutput.txt`.
 #### Synopsis
 
 ```bash
-jgpush [<branch> = master]
+jgpush [-r <remote>] [<branch>]
 ```
 
 #### Description
@@ -169,19 +162,18 @@ jgpush [<branch> = master]
 Push local commits to Gerrit for review, equivalent to
 
 ```bash
-git push origin HEAD:refs/for/<branch>
+git push <remote> HEAD:refs/for/<branch>
 ```
+
+#### Default Value of Parameters
+
+| Parameter  | Default |
+| ---------- | ------- |
+| `<remote>` | origin  |
+| `<branch>` | master  |
 
 
 
 ## :package: Stash
 
-#### Synopsis
-
-```bash
-jgstash "<label>"
-```
-
-#### Description
-
-Stash local changes with message: `<commit>  <label>` (two spaces between them), including untracked files, where `<commit>` means the short commit number (first 7 characters) of current HEAD.
+:door: Stash has been deprecated since v1.1.0

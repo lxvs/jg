@@ -1,15 +1,3 @@
 #!/bin/bash
-if [ $# -gt 1 ]
-then
-    echo if there is whitespace in label, please quote it.
-    exit 1
-elif [ $# -eq 1 ]
-then
-    hashshort=`git log -1 --pretty=format:"%h"`
-    git checkout *.ROM build.log 2> /dev/null
-    git stash save -u "${hashshort}  $1"
-else
-    echo Error: please provide a label to describe your stash.
-    echo "Use command 'jg jgs' for details."
-    exit 2
-fi
+echo "Stash has been deprecated since v1.1.0."
+exit -1
