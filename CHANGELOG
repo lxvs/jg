@@ -1,3 +1,7 @@
+1.1.1 - 2021-03-22  lxvs
+
+	* IMPROVEMENT: jgm: set diff similarity index to 100%.
+
 1.1.0 - 2021-03-20  lxvs
 
 	* NEW: argument parsing for all scripts.
