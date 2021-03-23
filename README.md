@@ -44,6 +44,25 @@ Copy the first `<length>` characters of commit number to clipboard.
 
 
 
+## :curly_loop: For Each Repo Do ...
+
+#### Synopsis
+
+```bash
+jgforeachrepodo <command> [<command-argument> ...]
+```
+
+#### Description
+
+Execute `<command>` for each repo in current folder. Won't execute for the repo without `.git` folder or whose name contains spaces.
+
+#### Example:
+````bash
+jgforeachrepodo git pull
+````
+
+
+
 ## :eyeglasses: Grep a Commit
 
 #### Synopsis
