@@ -1,3 +1,8 @@
+1.2.1 - 2021-03-24  lxvs
+
+	* IMPROVEMENT: jgf: only process directories.
+	* IMPROVEMENT: jgf: adjust empty lines.
+
 1.2.0 - 2021-03-23  lxvs
 
 	* NEW: jgf - For Each Repo Do
