@@ -27,7 +27,7 @@ shift $((OPTIND-1))
 
 [[ $# -eq 0 ]] && ShowHelp
 
-for repo in `ls -d */`
+for repo in `ls -d */ 2>/dev/null`
 do
     ! [[ -d $repo/.git ]] && {
         echo -e "\n[101;93mOmit $repo[0m"
