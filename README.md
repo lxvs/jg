@@ -196,3 +196,20 @@ git push <remote> HEAD:refs/for/<branch>
 ## :package: Stash
 
 :door: Stash has been deprecated since v1.1.0
+
+
+
+## :ear_of_rice: Version
+
+#### Synopsis
+
+```bash
+jgversion
+```
+
+#### Description
+
+Show current version of Johnny's Git Kit.
+
+
+
