@@ -40,12 +40,12 @@ revMod=""
 [[ "${2:-}" ]] && revMod=$2
 
 mkdir -p $outDir/$origDir/ $outDir/$modDir/
-if [[ `ls -A $outDir/$origDir/` || `ls -A $outDir/$modDir/` ]]; then
+if [[ $(ls -A $outDir/$origDir/) || $(ls -A $outDir/$modDir/) ]]; then
     echo "Error: either $outDir/$origDir or $outDir/$modDir is not empty."
     exit 1
 fi
 
-diffOrig=`git diff -M100% --diff-filter=a --name-only $revOrig $revMod 2>/dev/null`
+diffOrig=$(git diff -M100% --diff-filter=a --name-only $revOrig $revMod 2>/dev/null)
 for origFile in $diffOrig
 do
     if [[ "$origFile" == *"/"* ]]; then
@@ -55,7 +55,7 @@ do
     git show $revOrig:$origFile > $outDir/$origDir/$origFile
 done
 
-diffMod=`git diff -M100% --diff-filter=d --name-only $revOrig $revMod 2>/dev/null`
+diffMod=$(git diff -M100% --diff-filter=d --name-only $revOrig $revMod 2>/dev/null)
 [[ "$diffMod" ]] || exit 0
 if [[ "$revMod" ]]; then
     for modFile in $diffMod

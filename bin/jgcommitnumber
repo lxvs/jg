@@ -19,7 +19,7 @@ shift $((OPTIND-1))
 
 [[ "${1:-}" = "--" ]] && shift
 
-fullhash=`git log -1 --format="%H"`
+fullhash=$(git log -1 --format="%H")
 length=${1:-8}
 if ! [[ $length =~ ^[0-9]+$ ]]; then
     echo -e "Invalid argument: not a integer."

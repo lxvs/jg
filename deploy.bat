@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "_ver=1.3.1"
+set "_ver=1.3.2"
 title Johnny's Git Kit Deployment %_ver%
 pushd %~dp0
 echo  Johnny's Git Kit Deployment %_ver%
