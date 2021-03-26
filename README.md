@@ -12,7 +12,7 @@ Therefore, for example, you can simply type `jgc` and press <kbd>Tab</kbd> to ge
 
 
 
-# :hammer: Amend Last Commit
+## :hammer: Amend Last Commit
 
 #### Synopsis
 
@@ -97,7 +97,7 @@ Try `grep --help` for more information.
 
 
 
-# :bar_chart: Make Some Diff
+## :bar_chart: Make Some Diff
 
 #### Synopsis
 
