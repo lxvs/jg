@@ -47,8 +47,8 @@
 @for /r bin\ %%f in ( jg* ) do @( copy /Y "%%f" "%USERPROFILE%\bin\" || @goto somethingIsWrong )
 @if defined _ver @(
     echo #!/bin/bash
-    echo echo -e "Johnny's Git Kit %_ver%"
-    echo echo -e "https://github.com/lxvs/jg"
+    echo echo "Johnny's Git Kit %_ver%"
+    echo echo "https://github.com/lxvs/jg"
 )>%USERPROFILE%\bin\jgversion || @echo Warning: failed to create jgversion
 @call:Fin 1
 @exit /b
@@ -85,8 +85,7 @@
 @echo;
 @echo Removing deprecated commands...
 @del "%USERPROFILE%\bin\jg" 2>NUL
-@del "%USERPROFILE%\bin\jggrepcommit" 2>NUL
-@del "%USERPROFILE%\bin\jgpush" 2>NUL
+@del "%USERPROFILE%\bin\jgjustpullit" 2>NUL
 @del "%USERPROFILE%\bin\jgstash" 2>NUL
 @exit /b
 
