@@ -36,7 +36,7 @@
 :deploy
 @if not exist "bin" (
     @echo Error: Could not find the script folder.
-    @pause
+    @if not defined climode @pause
     exit /b 1
 )
 @if not exist "%USERPROFILE%\bin\" (
