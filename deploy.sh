@@ -1,20 +1,23 @@
 #!/bin/bash
 
-ver=$(cat VERSION 2>/dev/null)
-[[ -z $ver ]] && echo "Warning: failed to get version"
+rev=$(cat VERSION 2>/dev/null)
+[[ -z $rev ]] && echo "Warning: failed to get version"
 pushd $(dirname $0) 1>/dev/null
-echo "Johnny's Git Kit $ver Deployment"
+echo "Johnny's Git Kit $rev Deployment"
 echo "https://github.com/lxvs/jg"
 echo ""
 
 script_name="./$(basename $0)"
-target_dir="/usr/local/bin"
+if [ "${OS:0:7}" == "Windows" ]; then
+    target_dir="/c/Users/$USERNAME/bin"
+else
+    target_dir="/usr/local/bin"
+fi
 
 if [[ $# -eq 1 ]]; then
     if [[ "$1" == "1" || "$1" == "deploy" ]]; then
         if [[ ! -d $target_dir ]]; then
-            echo "ERROR: $target_dir does not exist or is not a directory!" >&2
-            exit 101
+            mkdir $target_dir
         fi
 
         echo "Copying..."
@@ -25,9 +28,9 @@ if [[ $# -eq 1 ]]; then
             chmod +x $target_dir/$(basename $jgfile)
         done
 
-        if [[ ! -z $ver ]]; then
+        if [[ ! -z $rev ]]; then
             echo "#!/bin/bash" > $target_dir/jgversion
-            echo "echo \"Johnny's Git Kit $ver\"" >> $target_dir/jgversion
+            echo "echo \"Johnny's Git Kit $rev\"" >> $target_dir/jgversion
             echo "echo \"https://github.com/lxvs/jg\"" >> $target_dir/jgversion
         fi
 

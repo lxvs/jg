@@ -1,7 +1,7 @@
 @setlocal
-@set _ver=
-@if exist VERSION @for /f %%i in (VERSION) do @if not defined _ver set "_ver=%%i"
-@title Johnny's Git Kit %_ver% Deployment
+@set rev=
+@if exist VERSION @for /f %%i in (VERSION) do @if not defined rev set "rev=%%i"
+@title Johnny's Git Kit v%rev% Deployment
 @pushd %~dp0
 
 @set "climode="
@@ -16,7 +16,7 @@
         ) else @echo warning: ignored invalid argument: %~1
     ) else @echo warning: too many arguments, ignoring all
 )
-@echo Johnny's Git Kit %_ver% Deployment
+@echo Johnny's Git Kit v%rev% Deployment
 @echo https://github.com/lxvs/jg
 @echo;
 @echo Please choose what to do:
@@ -45,9 +45,9 @@
 ) else @call:RmDep
 @echo Copying Johnny's Git Kit to your PC...
 @for /r bin\ %%f in ( jg* ) do @( copy /Y "%%f" "%USERPROFILE%\bin\" || @goto somethingIsWrong )
-@if defined _ver @(
+@if defined rev @(
     echo #!/bin/bash
-    echo echo "Johnny's Git Kit %_ver%"
+    echo echo "Johnny's Git Kit v%rev%"
     echo echo "https://github.com/lxvs/jg"
 )>%USERPROFILE%\bin\jgversion || @echo Warning: failed to create jgversion
 @call:Fin 1
