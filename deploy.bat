@@ -18,8 +18,9 @@ if not "%~1" == "" (
     ) else >&2 echo warning: too many arguments, ignoring all
 )
 
-@echo Johnny's Git Kit v%rev% Deployment
-@echo https://github.com/lxvs/jg
+@echo;
+@echo     Johnny's Git Kit v%rev% Deployment
+@echo     https://github.com/lxvs/jg
 @echo;
 @echo Please choose what to do:
 @echo   1  Deploy Johnny's Git Kit
