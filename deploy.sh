@@ -52,8 +52,7 @@ if [ $# -eq 1 ]; then
             done
             if [ ! -z $rev ]
             then
-                echo "
-#!/bin/bash
+                echo "#!/bin/bash
 echo '$name $rev'
 echo '$link'" > $target_dir/jgversion
             fi
@@ -70,6 +69,7 @@ echo '$link'" > $target_dir/jgversion
             fi
             echo "Removing deprecated commands..."
             rm -f "$target_dir/jg"
+            rm -f "$target_dir/jgjustpullit"
             rm -f "$target_dir/jgstash"
             echo "Removing $name..."
             for jgfile in ./bin/jg*
