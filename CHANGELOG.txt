@@ -1,3 +1,46 @@
+1.5.1 - 2021-07-19
+
+	* Improve deploy.sh greatly
+		- Fix an issue that cannot create jgv when deploy from
+		other directories
+		- Add quotes around some variables
+		- Remove bin folder if it is empty when uninstall
+
+1.5.0 - 2021-07-15
+
+	* A brand new jgnumberforthehistory
+		- No longer output to ~/NtmOutput.txt, stdout instead
+		- Only deal with staged changes
+		- Replace vim with vim ex
+	* Fix minor issues in deploy.sh
+		- jgversion starts with an empty line
+		- ommited jgjustpullit in deprecated cmd list
+	* Update gitignore
+		- Set eol of txt file to crlf
+		- Set eof of VERSION to lf
+		- Replace spaces with tabs.
+	* Remove license for now.
+	* Update readme.
+
+1.4.2 - 2021-07-13
+
+	* Improve deploy.bat
+		- Improve CLI mode
+		- Add usage
+		- Add variable 'name' and 'link'
+		- Add echo off and remove '@'s
+		- Improve the logo
+	* Improve deploy.sh
+		- Replace 'if's with 'case'
+		- Replace '[[...]]'s with '[...]'s
+		- Add argument -?, -h and --help
+		- Add variable 'name' and 'link'
+
+1.4.1 - 2021-07-12
+
+	* Make deploy.sh usable in Git Bash in Windows.
+	* Add README.txt
+
 1.4.0 - 2021-04-25
 
 	* add deploy.sh for BASH systems
