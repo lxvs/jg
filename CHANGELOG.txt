@@ -1,3 +1,7 @@
+2.0.0 - 2021-09-20
+
+	* Brand-new all-in-one jg
+
 1.5.1 - 2021-07-19
 
 	* Improve deploy.sh greatly
