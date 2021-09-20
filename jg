@@ -1,0 +1,288 @@
+#!/bin/bash
+set -o nounset   # abort on unbound variable
+set -o pipefail  # don't hide errors within pipes
+
+pushd () {
+    command pushd "$@" 1>/dev/null
+}
+
+popd () {
+    command popd "$@" 1>/dev/null
+}
+
+# $1    : Color - red/yellow/green
+# ...   : string lines
+Prompt () {
+    local -r RED="[91m"
+    local -r GRN="[92m"
+    local -r YLW="[93m"
+    local -r RST="[0m"
+    local -r COLOR_ARG="$1"
+    local color
+    shift
+    case "$COLOR_ARG" in
+    r|red) color="$RED" ;;
+    g|grn|green) color="$GRN" ;;
+    y|ylw|yellow) color="$YLW" ;;
+    *)
+        >&2 Prompt red "ERROR: Unknown color argument - $COLOR_ARG"
+        return 1
+        ;;
+    esac
+    printf "${color}%s${RST}\n" "$@"
+}
+
+ParseSwitchValue () {
+    sw="$1"
+    if test "$#" -ge 2 && ! grep -q '^-' <<<"$2"
+    then
+        val="$2"
+        return
+    fi
+    >&2 Prompt red "ERROR: $sw requires a value."
+    return 1
+}
+
+GetBeyondCompare () {
+    local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
+    local -r bc_reg_k="ExePath"
+    if ! grep -qi '^win' <<<"$OS"
+    then
+        >&2 Prompt red "Sorry, this operation is Windows only for now."
+        return 1
+    fi
+    bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
+    if test ! "${bc-}"
+    then
+        >&2 Prompt red "ERROR: Couldn't find Beyond Compare."
+        return 1
+    fi
+    bc=$(grep "ExePath" <<<"$bc" | sed 's/\s\{4\}.*\s\{4\}//')
+}
+
+Usage () {
+cat <<\USG
+
+Usage:
+
+    jg [--version] <command> [<args>]
+
+Commands:
+
+    batch, bcdiff, bcmerge, push
+
+Use `jg <command> --help` for details.
+USG
+}
+
+Logo () {
+cat <<LOGO
+
+    jg $VER
+    Date: $UPDT
+    $INFO
+LOGO
+}
+
+batchUsage () {
+cat <<\BATCHUSG
+
+Usage:
+
+    jg batch [<options>] <command> [<command-args> ...]
+
+Execute <command> for each repo in current folder.
+
+Options:
+
+    -f, --force         do not break when error
+
+Example:
+
+    jg batch git pull --ff-only
+BATCHUSG
+}
+
+batchOp () {
+    local force="no"
+    while test $# -ge 1
+    do
+        case "$1" in
+        -h|--help)
+            ${op}Usage
+            return
+            ;;
+        -f|--force)
+            force="yes"
+            shift
+            break
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+    for repo in $(ls -d */ 2>/dev/null)
+    do
+        test ! -e "$repo/.git" && continue
+        pushd "$repo"
+        Prompt yellow "$repo"
+        test ! "$force" = "yes"
+        "$@" || return
+        popd
+    done
+}
+
+bcdiffUsage () {
+cat <<\BCDIFFUSG
+
+Usage:
+
+    jg bcdiff [<option>...]
+
+Diff with Beyond Compare. <Option>, if any, will be passed to git difftool.
+Try 'git difftool --help' for more information.
+
+If you want to diff the staged changes, use 'jg bcdiff --cached'.
+BCDIFFUSG
+}
+
+bcdiffOp () {
+    local bc
+    if test $# -ge 1 && grep -q '^-h$\|^--help$' <<<"$1"
+    then
+        ${op}Usage
+        return
+    fi
+    git rev-parse || return
+    GetBeyondCompare || return
+    git -c "diff.tool=BeyondCompare" \
+        -c "difftool.BeyondCompare.cmd=\"${bc}\" \"\$(cygpath -w \"\$LOCAL\")\" \"\$REMOTE\"" \
+        difftool --dir-diff "$@"
+}
+
+bcmergeUsage () {
+cat <<\BCMERGEUSG
+
+Usage:
+
+    jg bcmerge [<file to merge> ...]
+
+Resolve merge conflicts with Beyond Compare. If <file to merge> is not
+specified, resolve all conflicted files one by one.
+BCMERGEUSG
+}
+
+bcmergeOp () {
+    local bc
+    if test $# -ge 1 && grep -q '^-h$\|^--help$' <<<"$1"
+    then
+        ${op}Usage
+        return
+    fi
+    git rev-parse || return
+    GetBeyondCompare || return
+    git -c "merge.tool=BeyondCompare" \
+        -c "mergetool.BeyondCompare.cmd=\"${bc}\" \"\$(cygpath -w \"\$LOCAL\")\" \"\$REMOTE\" \"\$BASE\" \"\$MERGED\"" \
+        -c "mergetool.BeyondCompare.trustExitCode=true" \
+        mergetool "$@"
+}
+
+pushUsage () {
+cat <<\PUSHUSG
+
+Usage:
+
+    jgpush [-r <remote>] [<branch>]
+
+Push local commits to Gerrit. Default <remote> and <branch> are the current.
+This command is equivalent to:
+
+    git push <remote> HEAD:refs/for/<branch>
+PUSHUSG
+}
+
+pushOp () {
+    local branch
+    local remote
+    local up
+    local rm_d
+    local br_d
+    local args
+    local sw
+    local val
+    while test $# -ge 1
+    do
+        sw="$1"
+        case "$sw" in
+        -h|--help)
+            ${op}Usage
+            return
+            ;;
+        -r|--remote)
+            ParseSwitchValue "$@" || return
+            remote="$val"
+            shift 2
+            ;;
+        -*)
+            args="${args-} $sw"
+            shift
+            ;;
+        *)
+            branch="$sw"
+            shift
+            break
+            ;;
+        esac
+    done
+    git rev-parse || return
+    up=$(git rev-parse --abbrev-ref @{push}) || return
+    rm_d="${up%%/*}"
+    br_d="${up##*/}"
+    git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}" $@
+}
+
+ParseArgs () {
+    local op
+    if test $# -eq 0
+    then
+        Logo
+        Usage
+        return
+    fi
+    while test $# -ge 1
+    do
+        case "$1" in
+        -v|--ver|--version)
+            Logo
+            return
+            ;;
+        -h|--help)
+            Logo
+            Usage
+            return
+            ;;
+        batch|bcdiff|bcmerge|push)
+            op="$1"
+            shift
+            ${op}Op "$@"
+            return
+            ;;
+        *)
+            >&2 Prompt red "ERROR: Invalid operation - $1"
+            >&2 Usage
+            return 1
+            ;;
+        esac
+    done
+}
+
+main () {
+    local -r VER="2.0.0"
+    local -r UPDT="2021-09-20"
+    local -r INFO="https://github.com/lxvs/jg"
+    local args
+    ParseArgs "$@" || return
+}
+
+main "$@"
