@@ -236,9 +236,9 @@ pushOp () {
         esac
     done
     git rev-parse || return
-    up=$(git rev-parse --abbrev-ref @{push}) || return
-    rm_d="${up%%/*}"
     br_d=$(git rev-parse --abbrev-ref HEAD) || return
+    up=$(git rev-parse --abbrev-ref @{push}) || return
+    rm_d="${up%/$br_d}"
     git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}" $@
 }
 
