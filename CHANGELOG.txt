@@ -1,3 +1,9 @@
+2.1.0 - 2021-09-23
+
+	* Add chid operation
+	* The version won't show up in INSTALL script
+	* Code improvements
+
 2.0.2 - 2021-09-21
 
 	* Fix an issue that it gets the wrong remote name when pushing to
