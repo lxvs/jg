@@ -1,3 +1,8 @@
+2.0.2 - 2021-09-21
+
+	* Fix an issue that it gets the wrong remote name when pushing to
+	a remote whose name contains slashes.
+
 2.0.1 - 2021-09-21
 
 	* Fix an issue that it gets the wrong branch name when pushing a
