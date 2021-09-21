@@ -238,7 +238,7 @@ pushOp () {
     git rev-parse || return
     up=$(git rev-parse --abbrev-ref @{push}) || return
     rm_d="${up%%/*}"
-    br_d="${up##*/}"
+    br_d=$(git rev-parse --abbrev-ref HEAD) || return
     git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}" $@
 }
 
