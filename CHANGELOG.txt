@@ -1,3 +1,8 @@
+2.0.1 - 2021-09-21
+
+	* Fix an issue that it gets the wrong branch name when pushing a
+	branch whose name contains slashes.
+
 2.0.0 - 2021-09-20
 
 	* Brand-new all-in-one jg
