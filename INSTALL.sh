@@ -5,7 +5,7 @@ set -o pipefail
 Usage(){
 cat <<USG
 
-    $NAME $VER
+    $NAME
     $LINK
 
 Install with one of below command:
@@ -96,7 +96,6 @@ ParseArgs () {
 main () {
     local -r NAME="Johnny's Git Kit"
     local -r LINK="https://github.com/lxvs/jg"
-    local -r VER="2.0.0"
     local target_dir
     pushd "$(dirname "$0")" 1>/dev/null
     GetTargetDir
