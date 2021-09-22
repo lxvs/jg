@@ -60,6 +60,19 @@ GetBeyondCompare () {
     bc=$(grep "ExePath" <<<"$bc" | sed 's/\s\{4\}.*\s\{4\}//')
 }
 
+LookUpUsage () {
+    while test $# -ge 1
+    do
+        case "$1" in
+        -h|--help)
+            ${op}Usage
+            return 1
+            ;;
+        esac
+        shift
+    done
+}
+
 Usage () {
 cat <<\USG
 
@@ -149,11 +162,7 @@ BCDIFFUSG
 
 bcdiffOp () {
     local bc
-    if test $# -ge 1 && grep -q '^-h$\|^--help$' <<<"$1"
-    then
-        ${op}Usage
-        return
-    fi
+    LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
     git -c "diff.tool=BeyondCompare" \
@@ -175,11 +184,7 @@ BCMERGEUSG
 
 bcmergeOp () {
     local bc
-    if test $# -ge 1 && grep -q '^-h$\|^--help$' <<<"$1"
-    then
-        ${op}Usage
-        return
-    fi
+    LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
     git -c "merge.tool=BeyondCompare" \
