@@ -82,7 +82,7 @@ Usage:
 
 Commands:
 
-    batch, bcdiff, bcmerge, push
+    batch, bcdiff, bcmerge, chid, push
 
 Use `jg <command> --help` for details.
 USG
@@ -193,6 +193,51 @@ bcmergeOp () {
         mergetool "$@"
 }
 
+chidUsage () {
+cat <<\CHIDUSG
+
+Usage:
+
+    jg chid <Change-ID>
+
+Find a commit with given Gerrit Change-ID.
+CHIDUSG
+}
+
+chidOp () {
+    local chid
+    local commit
+    local args
+    if test $# = 0
+    then
+        ${op}Usage
+        return
+    fi
+    while test $# -ge 1
+    do
+        case "$1" in
+        -h|--help)
+            ${op}Usage
+            return
+            ;;
+        -*)
+            args="${args-} $1"
+            shift
+            ;;
+        *)
+            chid="$1"
+            shift
+            break
+            ;;
+        esac
+    done
+    git rev-parse || return
+    test "${chid-}" || return
+    commit=$(git log --format="%b%H" | sed -n "/^Change-Id: $chid\$/,/^[0-9a-f]\{40\}\$/p" | tail -1)
+    test "$commit" || return
+    git show -s ${args-} $commit $@
+}
+
 pushUsage () {
 cat <<\PUSHUSG
 
@@ -267,7 +312,7 @@ ParseArgs () {
             Usage
             return
             ;;
-        batch|bcdiff|bcmerge|push)
+        batch|bcdiff|bcmerge|chid|push)
             op="$1"
             shift
             ${op}Op "$@"
