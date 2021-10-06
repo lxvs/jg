@@ -113,6 +113,7 @@ Options:
 Example:
 
     jg batch git pull --ff-only
+
 BATCHUSG
 }
 
@@ -157,6 +158,7 @@ Diff with Beyond Compare. <Option>, if any, will be passed to git difftool.
 Try 'git difftool --help' for more information.
 
 If you want to diff the staged changes, use 'jg bcdiff --cached'.
+
 BCDIFFUSG
 }
 
@@ -179,6 +181,7 @@ Usage:
 
 Resolve merge conflicts with Beyond Compare. If <file to merge> is not
 specified, resolve all conflicted files one by one.
+
 BCMERGEUSG
 }
 
@@ -201,6 +204,7 @@ Usage:
     jg chid <Change-ID>
 
 Find a commit with given Gerrit Change-ID.
+
 CHIDUSG
 }
 
@@ -243,12 +247,13 @@ cat <<\PUSHUSG
 
 Usage:
 
-    jgpush [-r <remote>] [<branch>]
+    jg push [-r <remote>] [<branch>]
 
 Push local commits to Gerrit. Default <remote> and <branch> are the current.
 This command is equivalent to:
 
     git push <remote> HEAD:refs/for/<branch>
+
 PUSHUSG
 }
 
