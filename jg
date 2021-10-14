@@ -201,9 +201,10 @@ cat <<\CHIDUSG
 
 Usage:
 
-    jg chid <Change-ID>
+    jg chid [<Change-ID>]
 
-Find a commit with given Gerrit Change-ID.
+Find a commit with given Gerrit Change-ID. If <Change-ID> is not specified,
+get the Change-ID of the current commit.
 
 CHIDUSG
 }
@@ -214,7 +215,9 @@ chidOp () {
     local args
     if test $# = 0
     then
-        ${op}Usage
+        git log -1 --format=%b |
+            grep '^Change-Id: ' |
+            sed 's/^Change-Id: //'
         return
     fi
     while test $# -ge 1
