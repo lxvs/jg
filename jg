@@ -82,9 +82,10 @@ Usage:
 
 Commands:
 
-    batch, bcdiff, bcmerge, chid, push
+    batch, bcdiff, bcmerge, chid, push, dog, adog, dof
 
 Use `jg <command> --help` for details.
+
 USG
 }
 
@@ -94,6 +95,7 @@ cat <<LOGO
     jg $VER
     Date: $UPDT
     $INFO
+
 LOGO
 }
 
@@ -300,6 +302,38 @@ pushOp () {
     git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}" $@
 }
 
+dogUsage () {
+cat <<DOGUSG
+
+jg dog = git log --decorate --oneline --graph
+jg adog = git log --all --decorate --oneline --graph
+jg dof = git log --decorate --oneline --first-parent
+
+DOGUSG
+}
+
+dogOp () {
+    LookUpUsage "$@" || return
+    git log --decorate --oneline --graph "$@"
+}
+
+adogUsage () {
+    dogUsage
+}
+
+adogOp () {
+    dogOp --all "$@"
+}
+
+dofUsage () {
+    dogUsage
+}
+
+dofOp () {
+    LookUpUsage "$@" || return
+    git log --decorate --oneline --first-parent "$@"
+}
+
 ParseArgs () {
     local op
     if test $# -eq 0
@@ -320,7 +354,7 @@ ParseArgs () {
             Usage
             return
             ;;
-        batch|bcdiff|bcmerge|chid|push)
+        batch|bcdiff|bcmerge|chid|push|dog|adog|dof)
             op="$1"
             shift
             ${op}Op "$@"
