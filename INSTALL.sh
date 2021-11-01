@@ -1,6 +1,5 @@
 #!/bin/bash
 set -o nounset
-set -o pipefail
 
 Usage(){
 cat <<USG
@@ -11,12 +10,10 @@ cat <<USG
 Install with one of below command:
     ./INSTALL.sh 1
     ./INSTALL.sh install
-    ./INSTALL.sh deploy
 
 Uninstall:
     ./INSTALL.sh 0
     ./INSTALL.sh uninstall
-    ./INSTALL.sh remove
 USG
 }
 
