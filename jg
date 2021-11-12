@@ -252,12 +252,12 @@ cat <<\PUSHUSG
 
 Usage:
 
-    jg push [-r <remote>] [<branch>]
+    jg push [-r <remote>] [<branch>] [<option> ...]
 
 Push local commits to Gerrit. Default <remote> and <branch> are the current.
 This command is equivalent to:
 
-    git push <remote> HEAD:refs/for/<branch>
+    git push [<option> ...] <remote> HEAD:refs/for/<branch>
 
 PUSHUSG
 }
@@ -289,9 +289,14 @@ pushOp () {
             shift
             ;;
         *)
-            branch="$sw"
-            shift
-            break
+            if test "${branch-}"
+            then
+                >&2 Prompt red "ERROR: Invalid argument: $sw"
+                return 1
+            else
+                branch="$sw"
+                shift
+            fi
             ;;
         esac
     done
@@ -299,7 +304,7 @@ pushOp () {
     br_d=$(git rev-parse --abbrev-ref HEAD) || return
     up=$(git rev-parse --abbrev-ref @{push}) || return
     rm_d="${up%/$br_d}"
-    git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}" $@
+    git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}"
 }
 
 dogUsage () {
