@@ -93,7 +93,6 @@ Logo () {
 cat <<LOGO
 
     jg $VER
-    Date: $UPDT
     $INFO
 
 LOGO
@@ -376,7 +375,6 @@ ParseArgs () {
 
 main () {
     local -r VER="2.1.1"
-    local -r UPDT="2021-11-01"
     local -r INFO="https://github.com/lxvs/jg"
     local args
     ParseArgs "$@" || return
