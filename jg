@@ -78,7 +78,9 @@ cat <<\USG
 
 Usage:
 
-    jg [--version] <command> [<args>]
+    jg { -v | --version }
+    jg { -h | --help }
+    jg <command> [<args>]
 
 Commands:
 
