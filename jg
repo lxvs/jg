@@ -243,7 +243,8 @@ chidOp () {
     done
     git rev-parse || return
     test "${chid-}" || return
-    commit=$(git log --format="%b%H" | sed -n "/^Change-Id: $chid\$/,/^[0-9a-f]\{40\}\$/p" | tail -1)
+    commit=$(git log --format="%b%H" |
+        sed -n "/^Change-Id: $chid[0-9a-f]\{,40\}\$/{n;p;q}")
     test "$commit" || return
     git show -s ${args-} $commit $@
 }
