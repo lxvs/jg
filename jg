@@ -75,7 +75,6 @@ LookUpUsage () {
 
 Usage () {
 cat <<\USG
-
 Usage:
 
     jg { -v | --version }
@@ -87,7 +86,6 @@ Commands:
     batch, bcdiff, bcmerge, chid, push, dog, dogr, adog, dof
 
 Use `jg <command> --help` for details.
-
 USG
 }
 
@@ -102,7 +100,6 @@ LOGO
 
 batchUsage () {
 cat <<\BATCHUSG
-
 Usage:
 
     jg batch [<options>] <command> [<command-args> ...]
@@ -116,7 +113,6 @@ Options:
 Example:
 
     jg batch git pull --ff-only
-
 BATCHUSG
 }
 
@@ -152,7 +148,6 @@ batchOp () {
 
 bcdiffUsage () {
 cat <<\BCDIFFUSG
-
 Usage:
 
     jg bcdiff [<option>...]
@@ -161,7 +156,6 @@ Diff with Beyond Compare. <Option>, if any, will be passed to git difftool.
 Try 'git difftool --help' for more information.
 
 If you want to diff the staged changes, use 'jg bcdiff --cached'.
-
 BCDIFFUSG
 }
 
@@ -177,14 +171,12 @@ bcdiffOp () {
 
 bcmergeUsage () {
 cat <<\BCMERGEUSG
-
 Usage:
 
     jg bcmerge [<file to merge> ...]
 
 Resolve merge conflicts with Beyond Compare. If <file to merge> is not
 specified, resolve all conflicted files one by one.
-
 BCMERGEUSG
 }
 
@@ -201,14 +193,12 @@ bcmergeOp () {
 
 chidUsage () {
 cat <<\CHIDUSG
-
 Usage:
 
     jg chid [<Change-ID>]
 
 Find a commit with given Gerrit Change-ID. If <Change-ID> is not specified,
 get the Change-ID of the current commit.
-
 CHIDUSG
 }
 
@@ -251,7 +241,6 @@ chidOp () {
 
 pushUsage () {
 cat <<\PUSHUSG
-
 Usage:
 
     jg push [-r <remote>] [<branch>] [<option> ...]
@@ -260,7 +249,6 @@ Push local commits to Gerrit. Default <remote> and <branch> are the current.
 This command is equivalent to:
 
     git push [<option> ...] <remote> HEAD:refs/for/<branch>
-
 PUSHUSG
 }
 
@@ -311,7 +299,6 @@ pushOp () {
 
 dogUsage () {
 cat <<DOGUSG
-
 jg dog = git log --decorate --oneline --graph
 jg adog = git log --all --decorate --oneline --graph
 jg dof = git log --decorate --oneline --first-parent
@@ -322,7 +309,6 @@ in this case, otherwise Shell will expand wildcards to filenames.
 jg dogr is similar to jg dog; the only difference is that when wildcards
 are used, dogr matches only remote branches while dog matches only local
 ones.
-
 DOGUSG
 }
 
