@@ -320,8 +320,24 @@ DOGUSG
 }
 
 dogOp () {
+    local brs
     LookUpUsage "$@" || return
-    git log --decorate --oneline --graph "$@"
+    brs="$@"
+    printf "%s" "$@" | grep -q '\*\|\?' && dogOp_ParseArgs "$@"
+    git log --decorate --oneline --graph $brs
+}
+
+dogOp_ParseArgs () {
+    brs=""
+    for arg in "$@"
+    do
+        if printf "%s" "$arg" | grep -q '\*\|\?'
+        then
+            brs="$brs $(git branch --format='%(refname:short)' -l "$arg")"
+        else
+            brs="$brs $arg"
+        fi
+    done
 }
 
 adogUsage () {
