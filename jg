@@ -330,17 +330,28 @@ dogOp () {
     local brs
     LookUpUsage "$@" || return
     brs="$@"
-    printf "%s" "$@" | grep -q '\*\|\?' && dogOp_ParseArgs "$@"
+    if printf "%s" "$@" | grep -q '\*\|\?'
+    then
+        dogOp_ParseArgs "$@" || return
+    fi
     git log --decorate --oneline --graph $brs
 }
 
 dogOp_ParseArgs () {
     brs=""
+    local br
     for arg in "$@"
     do
         if printf "%s" "$arg" | grep -q '\*\|\?'
         then
-            brs="$brs $(git branch --format='%(refname:short)' -l ${JG_DOGR+"-r"} "$arg")"
+            br=$(git branch --format='%(refname:short)' ${JG_DOGR+"-r"} \
+                -l "$arg")
+            if test ! "${br-}"
+            then
+                >&2 Prompt red "error: '$arg' matches no branch."
+                return 1
+            fi
+            brs="$brs $br"
         else
             brs="$brs $arg"
         fi
