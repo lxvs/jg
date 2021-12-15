@@ -84,7 +84,7 @@ Usage:
 
 Commands:
 
-    batch, bcdiff, bcmerge, chid, push, dog, adog, dof
+    batch, bcdiff, bcmerge, chid, push, dog, dogr, adog, dof
 
 Use `jg <command> --help` for details.
 
@@ -316,6 +316,13 @@ jg dog = git log --decorate --oneline --graph
 jg adog = git log --all --decorate --oneline --graph
 jg dof = git log --decorate --oneline --first-parent
 
+You can use wildcards when specifying branches, but make sure to quote them
+in this case, otherwise Shell will expand wildcards to filenames.
+
+jg dogr is similar to jg dog; the only difference is that when wildcards
+are used, dogr matches only remote branches while dog matches only local
+ones.
+
 DOGUSG
 }
 
@@ -333,11 +340,20 @@ dogOp_ParseArgs () {
     do
         if printf "%s" "$arg" | grep -q '\*\|\?'
         then
-            brs="$brs $(git branch --format='%(refname:short)' -l "$arg")"
+            brs="$brs $(git branch --format='%(refname:short)' -l ${JG_DOGR+"-r"} "$arg")"
         else
             brs="$brs $arg"
         fi
     done
+}
+
+dogrUsage () {
+    dogUsage
+}
+
+dogrOp () {
+    local JG_DOGR=1
+    dogOp "$@"
 }
 
 adogUsage () {
@@ -377,7 +393,7 @@ ParseArgs () {
             Usage
             return
             ;;
-        batch|bcdiff|bcmerge|chid|push|dog|adog|dof)
+        batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof)
             op="$1"
             shift
             ${op}Op "$@"
