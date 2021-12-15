@@ -1,3 +1,10 @@
+2.2.0 - 2021-12-15
+
+	* Support wildcards in operation 'dog'.
+	* Add operation 'dogr' which is similar to 'dog' but matches remote
+	branches when wildcards are used.
+	* Remove empty lines from heads and tails of usage texts.
+
 2.1.3 - 2021-12-09
 
 	* Now chid can match starting part of change-ID.
