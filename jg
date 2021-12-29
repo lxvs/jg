@@ -164,8 +164,8 @@ bcdiffOp () {
     LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
-    git -c "diff.tool=BeyondCompare" \
-        -c "difftool.BeyondCompare.cmd=\"${bc}\" \"\$(cygpath -w \"\$LOCAL\")\" \"\$REMOTE\"" \
+    git -c "diff.tool=bcjg" \
+        -c "difftool.bcjg.cmd=\"${bc}\" \"\$LOCAL\" \"\$REMOTE\"" \
         difftool --dir-diff "$@"
 }
 
@@ -177,6 +177,14 @@ Usage:
 
 Resolve merge conflicts with Beyond Compare. If <file to merge> is not
 specified, resolve all conflicted files one by one.
+
+By default, git creates *.orig backup files while resolving merges. These
+are safe to remove once a file has been merged and its git mergetool
+session has completed.
+
+Setting the mergetool.keepBackup configuration variable to false causes git
+mergetool to automatically remove the backup as files are successfully
+merged.
 BCMERGEUSG
 }
 
@@ -185,9 +193,9 @@ bcmergeOp () {
     LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
-    git -c "merge.tool=BeyondCompare" \
-        -c "mergetool.BeyondCompare.cmd=\"${bc}\" \"\$(cygpath -w \"\$LOCAL\")\" \"\$REMOTE\" \"\$BASE\" \"\$MERGED\"" \
-        -c "mergetool.BeyondCompare.trustExitCode=true" \
+    git -c "merge.tool=bcjg" \
+        -c "mergetool.bcjg.cmd=\"${bc}\" \"\$LOCAL\" \"\$REMOTE\" \"\$BASE\" \"\$MERGED\"" \
+        -c "mergetool.bcjg.trustExitCode=true" \
         mergetool "$@"
 }
 
