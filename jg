@@ -414,7 +414,7 @@ ParseArgs () {
 }
 
 main () {
-    local -r VER="2.2.0"
+    local -r VER="2.2.1"
     local -r INFO="https://github.com/lxvs/jg"
     local args
     ParseArgs "$@" || return

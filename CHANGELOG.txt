@@ -1,3 +1,8 @@
+2.2.1 - 2021-12-29
+
+	* Make bcdiff and bcmerge usable in git 1.9.5
+
+
 2.2.0 - 2021-12-15
 
 	* Support wildcards in operation 'dog'.
