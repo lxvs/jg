@@ -468,31 +468,28 @@ ParseArgs () {
         Usage
         return
     fi
-    while test $# -ge 1
-    do
-        case "$1" in
-        -v|--ver|--version)
-            Logo
-            return
-            ;;
-        -h|--help)
-            Logo
-            Usage
-            return
-            ;;
-        batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|ghcr)
-            op="$1"
-            shift
-            ${op}Op "$@"
-            return
-            ;;
-        *)
-            >&2 Prompt red "ERROR: Invalid operation - $1"
-            >&2 Usage
-            return 1
-            ;;
-        esac
-    done
+    case "$1" in
+    -v|--ver|--version)
+        Logo
+        exit
+        ;;
+    -h|--help)
+        Logo
+        Usage
+        exit
+        ;;
+    batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|ghcr)
+        op="$1"
+        shift
+        ${op}Op "$@"
+        return
+        ;;
+    *)
+        >&2 Prompt red "ERROR: Invalid operation - $1"
+        >&2 Usage
+        return 1
+        ;;
+    esac
 }
 
 main () {
