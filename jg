@@ -46,9 +46,9 @@ ParseSwitchValue () {
 GetBeyondCompare () {
     local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
     local -r bc_reg_k="ExePath"
-    if ! grep -qi '^win' <<<"$OS"
+    if ! grep -qi '^win' <<<"${OS-}"
     then
-        >&2 Prompt red "Sorry, this operation is Windows only for now."
+        >&2 Prompt yellow "Sorry, this operation is Windows only for now."
         return 1
     fi
     bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
