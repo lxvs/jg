@@ -85,7 +85,7 @@ Commands:
 
     batch, bcdiff, bcmerge, chid, push, dog, dogr, adog, dof
 
-Use `jg <command> --help` for details.
+Use 'jg <command> --help' for details.
 USG
 }
 
