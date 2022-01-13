@@ -3,17 +3,17 @@ set -o nounset
 
 Usage(){
 cat <<USG
+$NAME
+$LINK
 
-    $NAME
-    $LINK
+usage: ./INSTALL.sh [<options>]
 
-Install with one of below command:
-    ./INSTALL.sh 1
-    ./INSTALL.sh install
+options:
+    -h, --help                  Get Help
+    -p, --prefix <prefix>       Specify installation prefix
+    -u, --uninstall             Uninstall
 
-Uninstall:
-    ./INSTALL.sh 0
-    ./INSTALL.sh uninstall
+Default prefix is /usr/local in Linux or \$HOME in CYGWIN/MINGW.
 USG
 }
 
@@ -32,7 +32,7 @@ Prompt () {
     g|grn|green) color="$GRN" ;;
     y|ylw|yellow) color="$YLW" ;;
     *)
-        >&2 Prompt red "ERROR: Unknown color argument - $COLOR_ARG"
+        >&2 Prompt red "error: unknown color - $COLOR_ARG"
         return 1
         ;;
     esac
@@ -40,63 +40,100 @@ Prompt () {
 }
 
 Install () {
-    test -d "$target_dir" || mkdir "$target_dir" || return
-    cp jg "$target_dir" || return
-    chmod +x "$target_dir/jg"
+    test -d "$bin" || mkdir -p "$bin" || return
+    install jg "$bin" || return
     Prompt green "Complete."
 }
 
 Uninstall () {
-    if test ! -e "$target_dir/jg"
+    if test ! -e "$bin/jg"
     then
-        Prompt red "ERROR: not installed yet."
+        >&2 Prompt red "error: not installed yet."
         return 1
     fi
+    rm --force -- "$bin/jg" || return
     RemoveDeprecated
-    rm --force -- "$target_dir/jg"
-    rmdir "$target_dir" 2>/dev/null
+    rmdir "$bin" 2>/dev/null
     Prompt green "Complete."
 }
 
 RemoveDeprecated () {
-    # test ! -d "$target_dir" && return
-    # Prompt yellow "Removing deprecated commands..."
-    pushd "$target_dir" 1>/dev/null
+    pushd "$bin" 1>/dev/null
     rm --force -- jgamendlastcommit jgcommitnumber jgforeachrepodo \
         jgjustpullit jggrepacommit jgjustpullit jgmakesomediff \
         jgnumberforthehistory jgpush jgstash jgversion
     popd 1>/dev/null
 }
 
-GetTargetDir () {
-    if grep -qi '^win' <<<"$OS"
-    then
-        target_dir="$HOME/bin"
-    else
-        target_dir="/usr/local/bin"
-    fi
+GetPrefix () {
+    local uname
+    test "${pfx-}" && return
+    uname=$(uname -s)
+    case "$uname" in
+        Linux*)
+            pfx="/usr/local"
+            ;;
+        CYGWIN*|MINGW*)
+            pfx="$HOME"
+            ;;
+        *)
+            >&2 Prompt red "error: unknown uname: $uname; please specify prefix with --prefix."
+            return 1
+            ;;
+    esac
 }
 
 ParseArgs () {
-    if test ! $# -eq 1
+    local val
+    while test $# -ge 1
+    do
+        case "$1" in
+        -h|--help)
+            Usage
+            exit
+            ;;
+        -p|--prefix)
+            psv "$@" || return
+            pfx="$val"
+            shift 2
+            ;;
+        -u|--uninstall)
+            uninst=1
+            shift
+            ;;
+        *)
+            >&2 Prompt red "error: invalid argument: $1"
+            return 1
+            ;;
+        esac
+    done
+}
+
+psv () {
+    if test $# -ge 2 && ! grep -q '^-' <<<"$2"
     then
-        Usage
-        return
+        val="$2"
+        return 0
     fi
-    case "$1" in
-    1|install|deploy) Install ;;
-    0|uninstall|remove) Uninstall ;;
-    *) Usage ;;
-    esac
+    >&2 Prompt red "error: $1 requires a value."
+    return 1
 }
 
 main () {
     local -r NAME="Johnny's Git Kit"
     local -r LINK="https://github.com/lxvs/jg"
-    local target_dir
+    local pfx uninst bin
     pushd "$(dirname "$0")" 1>/dev/null
-    GetTargetDir
-    ParseArgs "$@"
+    ParseArgs "$@" || return
+    GetPrefix || return
+    bin="$pfx/bin"
+    if test "${uninst-}"
+    then
+        Uninstall
+    else
+        Install
+    fi
 }
+
 
 main "$@"
