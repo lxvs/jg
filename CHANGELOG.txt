@@ -1,3 +1,7 @@
+2.3.1 - 2022-01-27
+
+	* Query logs of all branches in chid
+
 2.3.0 - 2022-01-13
 
 	* Add operation 'ghcr' (GitHub create repo)
