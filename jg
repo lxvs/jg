@@ -46,6 +46,7 @@ ParseSwitchValue () {
 GetBeyondCompare () {
     local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
     local -r bc_reg_k="ExePath"
+    test "${JG_BC_PATH-}" && bc="$JG_BC_PATH" && return
     if ! grep -qi '^win' <<<"${OS-}"
     then
         >&2 Prompt yellow "Sorry, this operation is Windows only for now."
@@ -156,6 +157,10 @@ Diff with Beyond Compare. <Option>, if any, will be passed to git difftool.
 Try 'git difftool --help' for more information.
 
 If you want to diff the staged changes, use 'jg bcdiff --cached'.
+
+Path to Beyond Compare with be queried from Registry; it can be overridden
+by setting environment variable JG_BC_PATH to the absolute path to Beyound
+Compare.
 BCDIFFUSG
 }
 
@@ -185,6 +190,10 @@ session has completed.
 Setting the mergetool.keepBackup configuration variable to false causes git
 mergetool to automatically remove the backup as files are successfully
 merged.
+
+Path to Beyond Compare with be queried from Registry; it can be overridden
+by setting environment variable JG_BC_PATH to the absolute path to Beyound
+Compare.
 BCMERGEUSG
 }
 
