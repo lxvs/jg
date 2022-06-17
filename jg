@@ -46,8 +46,8 @@ ParseSwitchValue () {
 GetBeyondCompare () {
     local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
     local -r bc_reg_k="ExePath"
-    test "${JG_BC_PATH-}" && bc="$JG_BC_PATH" && return
-    if ! grep -qi '^win' <<<"${OS-}"
+    bc="$JG_BC_PATH" && return
+    if ! grep -qi '^win' <<<"$OS"
     then
         >&2 Prompt yellow "Sorry, this operation is Windows only for now."
         return 1
@@ -464,8 +464,8 @@ ghcrOp_validate () {
             "error: Repo name can contain only letters, digits, '-', '.' and '_'."
         return 1
     fi
-    test ! "$user" && test "${JG_GH_USER-}" && user="$JG_GH_USER"
-    test ! "$token" && test "${JG_GH_TOKEN-}" && token="$JG_GH_TOKEN"
+    test ! "$user" && user="$JG_GH_USER"
+    test ! "$token" && token="$JG_GH_TOKEN"
     return 0
 }
 
@@ -504,6 +504,10 @@ ParseArgs () {
 main () {
     local -r VER="2.3.1"
     local -r INFO="https://github.com/lxvs/jg"
+    local JG_BC_PATH=${JG_BC_PATH-}
+    local JG_GH_USER=${JG_GH_USER-}
+    local JG_GH_TOKEN=${JG_GH_TOKEN-}
+    local OS=${OS-}
     ParseArgs "$@" || return
 }
 
