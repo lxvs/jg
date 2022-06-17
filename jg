@@ -347,7 +347,7 @@ dogOp_ParseArgs () {
     do
         if printf "%s" "$arg" | grep -q '\*\|\?'
         then
-            br=$(git branch --format='%(refname:short)' ${JG_DOGR+"-r"} \
+            br=$(git branch --format='%(refname:short)' ${isdogr+"-r"} \
                 -l "$arg")
             if test ! "$br"
             then
@@ -366,7 +366,7 @@ dogrUsage () {
 }
 
 dogrOp () {
-    local JG_DOGR=1
+    local isdogr=1
     dogOp "$@"
 }
 
