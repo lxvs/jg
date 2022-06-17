@@ -1,6 +1,5 @@
 #!/bin/bash
-set -o nounset   # abort on unbound variable
-set -o pipefail  # don't hide errors within pipes
+set -o nounset
 
 pushd () {
     command pushd "$@" 1>/dev/null
