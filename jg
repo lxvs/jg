@@ -53,7 +53,7 @@ GetBeyondCompare () {
         return 1
     fi
     bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
-    if test ! "${bc-}"
+    if test ! "$bc"
     then
         >&2 Prompt red "ERROR: Couldn't find Beyond Compare."
         return 1
@@ -198,7 +198,7 @@ BCMERGEUSG
 }
 
 bcmergeOp () {
-    local bc
+    local bc=
     LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
@@ -220,9 +220,9 @@ CHIDUSG
 }
 
 chidOp () {
-    local chid
+    local chid=
     local commit
-    local args
+    local args=
     if test $# = 0
     then
         git log -1 --format=%b |
@@ -238,7 +238,7 @@ chidOp () {
             return
             ;;
         -*)
-            args="${args-} $1"
+            args="$args $1"
             shift
             ;;
         *)
@@ -249,11 +249,11 @@ chidOp () {
         esac
     done
     git rev-parse || return
-    test "${chid-}" || return
+    test "$chid" || return
     commit=$(git log --all --format="%b%H" |
         sed -n "/^Change-Id: $chid[0-9a-f]\{,40\}\$/{n;p;q}")
     test "$commit" || return
-    git show -s ${args-} $commit $@
+    git show -s $args $commit $@
 }
 
 pushUsage () {
@@ -270,12 +270,12 @@ PUSHUSG
 }
 
 pushOp () {
-    local branch
+    local branch=
     local remote
     local up
     local rm_d
     local br_d
-    local args
+    local args=
     local sw
     local val
     while test $# -ge 1
@@ -292,11 +292,11 @@ pushOp () {
             shift 2
             ;;
         -*)
-            args="${args-} $sw"
+            args="$args $sw"
             shift
             ;;
         *)
-            if test "${branch-}"
+            if test "$branch"
             then
                 >&2 Prompt red "ERROR: Invalid argument: $sw"
                 return 1
@@ -311,7 +311,7 @@ pushOp () {
     br_d=$(git rev-parse --abbrev-ref HEAD) || return
     up=$(git rev-parse --abbrev-ref @{push}) || return
     rm_d="${up%/$br_d}"
-    git push ${args-} ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}"
+    git push $args ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}"
 }
 
 dogUsage () {
@@ -341,15 +341,15 @@ dogOp () {
 }
 
 dogOp_ParseArgs () {
-    brs=""
-    local br
+    brs=
+    local br=
     for arg in "$@"
     do
         if printf "%s" "$arg" | grep -q '\*\|\?'
         then
             br=$(git branch --format='%(refname:short)' ${JG_DOGR+"-r"} \
                 -l "$arg")
-            if test ! "${br-}"
+            if test ! "$br"
             then
                 >&2 Prompt red "error: '$arg' matches no branch."
                 return 1
@@ -404,7 +404,7 @@ EOF
 }
 
 ghcrOp () {
-    local user token name private
+    local user= token= name= private
     local sw val
     ghcrOp_parse "$@" || return
     ghcrOp_validate || return
@@ -439,7 +439,7 @@ ghcrOp_parse () {
             shift
             ;;
         *)
-            if test ! "${name-}"
+            if test ! "$name"
             then
                 name="$1"
                 shift
@@ -453,7 +453,7 @@ ghcrOp_parse () {
 }
 
 ghcrOp_validate () {
-    if test ! "${name-}"
+    if test ! "$name"
     then
         >&2 Prompt red "error: Repo name is required."
         return 1
@@ -464,8 +464,8 @@ ghcrOp_validate () {
             "error: Repo name can contain only letters, digits, '-', '.' and '_'."
         return 1
     fi
-    test ! "${user-}" && test "${JG_GH_USER-}" && user="$JG_GH_USER"
-    test ! "${token-}" && test "${JG_GH_TOKEN-}" && token="$JG_GH_TOKEN"
+    test ! "$user" && test "${JG_GH_USER-}" && user="$JG_GH_USER"
+    test ! "$token" && test "${JG_GH_TOKEN-}" && token="$JG_GH_TOKEN"
     return 0
 }
 
