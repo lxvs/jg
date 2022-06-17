@@ -1,3 +1,11 @@
+2.3.2 - 2022-06-17
+
+	* Introduce an environment variable JG_BC_PATH to override the path
+	to Beyond Compare
+	* Fix an issue that wildcards after `--' are treated as branches by
+	jg-dog
+	* Some improvements in coding
+
 2.3.1 - 2022-01-27
 
 	* Query logs of all branches in chid
