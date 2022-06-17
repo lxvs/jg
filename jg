@@ -1,5 +1,6 @@
 #!/bin/bash
 set -o nounset
+set -o noglob
 
 pushd () {
     command pushd "$@" 1>/dev/null
@@ -344,6 +345,11 @@ dogOp_ParseArgs () {
     local br=
     for arg in "$@"
     do
+        if test "$arg" = "--"
+        then
+            brs="$brs $@"
+            break
+        fi
         if printf "%s" "$arg" | grep -q '\*\|\?'
         then
             br=$(git branch --format='%(refname:short)' ${isdogr+"-r"} \
@@ -357,6 +363,7 @@ dogOp_ParseArgs () {
         else
             brs="$brs $arg"
         fi
+        shift
     done
 }
 
