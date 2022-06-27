@@ -511,10 +511,10 @@ ParseArgs () {
 main () {
     local -r VER="2.3.2"
     local -r INFO="https://lxvs.net/jg"
-    local JG_BC_PATH=${JG_BC_PATH-}
-    local JG_GH_USER=${JG_GH_USER-}
-    local JG_GH_TOKEN=${JG_GH_TOKEN-}
-    local OS=${OS-}
+    local -r JG_BC_PATH=${JG_BC_PATH-}
+    local -r JG_GH_USER=${JG_GH_USER-}
+    local -r JG_GH_TOKEN=${JG_GH_TOKEN-}
+    local -r OS=${OS-}
     ParseArgs "$@" || return
 }
 
