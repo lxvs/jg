@@ -46,7 +46,7 @@ ParseSwitchValue () {
 GetBeyondCompare () {
     local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
     local -r bc_reg_k="ExePath"
-    bc="$JG_BC_PATH" && return
+    test "$JG_BC_PATH" && bc=$JG_BC_PATH && return
     if ! grep -qi '^win' <<<"$OS"
     then
         >&2 Prompt yellow "Sorry, this operation is Windows only for now."
@@ -55,7 +55,8 @@ GetBeyondCompare () {
     bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
     if test ! "$bc"
     then
-        >&2 Prompt red "ERROR: Couldn't find Beyond Compare."
+        >&2 Prompt red "error: Couldn't find Beyond Compare." \
+            "Please define the path to bcompare.exe in JG_BC_PATH and restart shell."
         return 1
     fi
     bc=$(grep "ExePath" <<<"$bc" | sed 's/\s\{4\}.*\s\{4\}//')
@@ -165,7 +166,7 @@ BCDIFFUSG
 }
 
 bcdiffOp () {
-    local bc
+    local bc=
     LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
