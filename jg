@@ -76,7 +76,7 @@ LookUpUsage () {
 }
 
 Usage () {
-cat <<\USG
+cat <<\EOF
 Usage:
 
     jg { -v | --version }
@@ -88,20 +88,20 @@ Commands:
     batch, bcdiff, bcmerge, chid, push, dog, dogr, adog, dof, ghcr
 
 Use 'jg <command> --help' for details.
-USG
+EOF
 }
 
 Logo () {
-cat <<LOGO
+cat <<EOF
 
     jg $VER
     $INFO
 
-LOGO
+EOF
 }
 
 batchUsage () {
-cat <<\BATCHUSG
+cat <<\EOF
 Usage:
 
     jg batch [<options>] <command> [<command-args> ...]
@@ -115,7 +115,7 @@ Options:
 Example:
 
     jg batch git pull --ff-only
-BATCHUSG
+EOF
 }
 
 batchOp () {
@@ -149,7 +149,7 @@ batchOp () {
 }
 
 bcdiffUsage () {
-cat <<\BCDIFFUSG
+cat <<\EOF
 Usage:
 
     jg bcdiff [<option>...]
@@ -162,7 +162,7 @@ If you want to diff the staged changes, use 'jg bcdiff --cached'.
 Path to Beyond Compare with be queried from Registry; it can be overridden
 by setting environment variable JG_BC_PATH to the absolute path to Beyound
 Compare.
-BCDIFFUSG
+EOF
 }
 
 bcdiffOp () {
@@ -176,7 +176,7 @@ bcdiffOp () {
 }
 
 bcmergeUsage () {
-cat <<\BCMERGEUSG
+cat <<\EOF
 Usage:
 
     jg bcmerge [<file to merge> ...]
@@ -195,7 +195,7 @@ merged.
 Path to Beyond Compare with be queried from Registry; it can be overridden
 by setting environment variable JG_BC_PATH to the absolute path to Beyound
 Compare.
-BCMERGEUSG
+EOF
 }
 
 bcmergeOp () {
@@ -210,14 +210,14 @@ bcmergeOp () {
 }
 
 chidUsage () {
-cat <<\CHIDUSG
+cat <<\EOF
 Usage:
 
     jg chid [<Change-ID>]
 
 Find a commit with given Gerrit Change-ID. If <Change-ID> is not specified,
 get the Change-ID of the current commit.
-CHIDUSG
+EOF
 }
 
 chidOp () {
@@ -258,7 +258,7 @@ chidOp () {
 }
 
 pushUsage () {
-cat <<\PUSHUSG
+cat <<\EOF
 Usage:
 
     jg push [-r <remote>] [<branch>] [<option> ...]
@@ -267,7 +267,7 @@ Push local commits to Gerrit. Default <remote> and <branch> are the current.
 This command is equivalent to:
 
     git push [<option> ...] <remote> HEAD:refs/for/<branch>
-PUSHUSG
+EOF
 }
 
 pushOp () {
@@ -316,7 +316,7 @@ pushOp () {
 }
 
 dogUsage () {
-cat <<DOGUSG
+cat <<EOF
 jg dog = git log --decorate --oneline --graph
 jg adog = git log --all --decorate --oneline --graph
 jg dof = git log --decorate --oneline --first-parent
@@ -327,7 +327,7 @@ in this case, otherwise Shell will expand wildcards to filenames.
 jg dogr is similar to jg dog; the only difference is that when wildcards
 are used, dogr matches only remote branches while dog matches only local
 ones.
-DOGUSG
+EOF
 }
 
 dogOp () {
