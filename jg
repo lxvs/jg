@@ -17,13 +17,13 @@ Prompt () {
     local -r GRN="[92m"
     local -r YLW="[93m"
     local -r RST="[0m"
-    local -r COLOR_ARG="$1"
+    local -r COLOR_ARG=$1
     local color
     shift
-    case "$COLOR_ARG" in
-    r|red) color="$RED" ;;
-    g|grn|green) color="$GRN" ;;
-    y|ylw|yellow) color="$YLW" ;;
+    case $COLOR_ARG in
+    r|red) color=$RED ;;
+    g|grn|green) color=$GRN ;;
+    y|ylw|yellow) color=$YLW ;;
     *)
         >&2 Prompt red "ERROR: Unknown color argument - $COLOR_ARG"
         return 1
@@ -33,10 +33,10 @@ Prompt () {
 }
 
 ParseSwitchValue () {
-    sw="$1"
+    sw=$1
     if test "$#" -ge 2 && ! grep -q '^-' <<<"$2"
     then
-        val="$2"
+        val=$2
         return
     fi
     >&2 Prompt red "ERROR: $sw requires a value."
@@ -65,7 +65,7 @@ GetBeyondCompare () {
 LookUpUsage () {
     while test $# -ge 1
     do
-        case "$1" in
+        case $1 in
         -h|--help)
             ${op}Usage
             return 1
@@ -122,7 +122,7 @@ batchOp () {
     local force="no"
     while test $# -ge 1
     do
-        case "$1" in
+        case $1 in
         -h|--help)
             ${op}Usage
             return
@@ -233,7 +233,7 @@ chidOp () {
     fi
     while test $# -ge 1
     do
-        case "$1" in
+        case $1 in
         -h|--help)
             ${op}Usage
             return
@@ -243,7 +243,7 @@ chidOp () {
             shift
             ;;
         *)
-            chid="$1"
+            chid=$1
             shift
             break
             ;;
@@ -281,15 +281,15 @@ pushOp () {
     local val
     while test $# -ge 1
     do
-        sw="$1"
-        case "$sw" in
+        sw=$1
+        case $sw in
         -h|--help)
             ${op}Usage
             return
             ;;
         -r|--remote)
             ParseSwitchValue "$@" || return
-            remote="$val"
+            remote=$val
             shift 2
             ;;
         -*)
@@ -302,7 +302,7 @@ pushOp () {
                 >&2 Prompt red "ERROR: Invalid argument: $sw"
                 return 1
             else
-                branch="$sw"
+                branch=$sw
                 shift
             fi
             ;;
@@ -425,7 +425,7 @@ ghcrOp () {
 ghcrOp_parse () {
     while test $# -ge 1
     do
-        case "$1" in
+        case $1 in
         -h|--help)
             ${op}Usage
             exit
@@ -437,7 +437,7 @@ ghcrOp_parse () {
                 user=$(awk -F: '{print $1}' <<<$"$val")
                 token=$(awk -F: '{print $2}' <<<$"$val")
             else
-                user="$val"
+                user=$val
             fi
             shift 2
             ;;
@@ -448,7 +448,7 @@ ghcrOp_parse () {
         *)
             if test ! "$name"
             then
-                name="$1"
+                name=$1
                 shift
                 continue
             fi
@@ -471,8 +471,8 @@ ghcrOp_validate () {
             "error: Repo name can contain only letters, digits, '-', '.' and '_'."
         return 1
     fi
-    test ! "$user" && user="$JG_GH_USER"
-    test ! "$token" && token="$JG_GH_TOKEN"
+    test ! "$user" && user=$JG_GH_USER
+    test ! "$token" && token=$JG_GH_TOKEN
     return 0
 }
 
@@ -484,7 +484,7 @@ ParseArgs () {
         Usage
         return
     fi
-    case "$1" in
+    case $1 in
     -v|--ver|--version)
         Logo
         exit
@@ -495,7 +495,7 @@ ParseArgs () {
         exit
         ;;
     batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|ghcr)
-        op="$1"
+        op=$1
         shift
         ${op}Op "$@"
         return
