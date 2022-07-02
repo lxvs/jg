@@ -25,7 +25,7 @@ Prompt () {
     g|grn|green) color=$GRN ;;
     y|ylw|yellow) color=$YLW ;;
     *)
-        >&2 Prompt red "ERROR: Unknown color argument - $COLOR_ARG"
+        >&2 Prompt red "error: invalid color argument - $COLOR_ARG"
         return 1
         ;;
     esac
@@ -39,7 +39,7 @@ ParseSwitchValue () {
         val=$2
         return
     fi
-    >&2 Prompt red "ERROR: $sw requires a value."
+    >&2 Prompt red "error: $sw requires a value."
     return 1
 }
 
@@ -299,7 +299,7 @@ pushOp () {
         *)
             if test "$branch"
             then
-                >&2 Prompt red "ERROR: Invalid argument: $sw"
+                >&2 Prompt red "error: invalid argument: $sw"
                 return 1
             else
                 branch=$sw
@@ -501,7 +501,7 @@ ParseArgs () {
         return
         ;;
     *)
-        >&2 Prompt red "ERROR: Invalid operation - $1"
+        >&2 Prompt red "error: invalid operation - $1"
         >&2 Usage
         return 1
         ;;
