@@ -77,17 +77,25 @@ LookUpUsage () {
 
 Usage () {
 cat <<\EOF
-Usage:
+usage: jg [-v | --version] [-h | --help] <command> [<args>]
 
-    jg { -v | --version }
-    jg { -h | --help }
-    jg <command> [<args>]
+These are all commands used in various situations:
 
-Commands:
+do things
+    bcmerge     Resolve merge conflicts using Beyond Compare
+    batch       Execute a command for each repo in current directory
+    push        Push to Gerrit for review
+    ghcr        Create a GitHub repository
 
-    batch, bcdiff, bcmerge, chid, push, dog, dogr, adog, dof, ghcr
+examine things
+    bcdiff      Show changes using Beyond Compare
+    chid        Find a commit using given Gerrit Change-Id, or otherwise
+    dog         Show commit logs a better way
+    dogr        Show commit logs a better way
+    adog        Show all commit logs a better way
+    dof         Show commit logs a better way, first parent only
 
-Use 'jg <command> --help' for details.
+Use `jg <command> --help' for detailed usage on the specific command.
 EOF
 }
 
@@ -102,19 +110,11 @@ EOF
 
 batchUsage () {
 cat <<\EOF
-Usage:
+usage: jg batch [<options>] <command> [<command-args> ...]
 
-    jg batch [<options>] <command> [<command-args> ...]
+    -f, --force     Do not break when error
 
-Execute <command> for each repo in current folder.
-
-Options:
-
-    -f, --force         do not break when error
-
-Example:
-
-    jg batch git pull --ff-only
+Execute the specified command for each repository in current directory.
 EOF
 }
 
@@ -150,16 +150,12 @@ batchOp () {
 
 bcdiffUsage () {
 cat <<\EOF
-Usage:
+usage: jg bcdiff [<options>] [<commit> [<commit>]] [--] [<path>...]
 
-    jg bcdiff [<option>...]
+Show changes using Beyond Compare. Options will be passed to git-difftool.
+Try `git difftool -h' or `git help difftool' for more information.
 
-Diff with Beyond Compare. <Option>, if any, will be passed to git difftool.
-Try 'git difftool --help' for more information.
-
-If you want to diff the staged changes, use 'jg bcdiff --cached'.
-
-Path to Beyond Compare with be queried from Registry; it can be overridden
+Path to Beyond Compare will be queried from Registry; it can be overridden
 by setting environment variable JG_BC_PATH to the absolute path to Beyound
 Compare.
 EOF
@@ -177,14 +173,12 @@ bcdiffOp () {
 
 bcmergeUsage () {
 cat <<\EOF
-Usage:
+usage: jg bcmerge [<file to merge> ...]
 
-    jg bcmerge [<file to merge> ...]
-
-Resolve merge conflicts with Beyond Compare. If <file to merge> is not
+Resolve merge conflicts using Beyond Compare. If <file to merge> is not
 specified, resolve all conflicted files one by one.
 
-By default, git creates *.orig backup files while resolving merges. These
+By default, git creates `*.orig' backup files while resolving merges. These
 are safe to remove once a file has been merged and its git mergetool
 session has completed.
 
@@ -192,7 +186,7 @@ Setting the mergetool.keepBackup configuration variable to false causes git
 mergetool to automatically remove the backup as files are successfully
 merged.
 
-Path to Beyond Compare with be queried from Registry; it can be overridden
+Path to Beyond Compare will be queried from Registry; it can be overridden
 by setting environment variable JG_BC_PATH to the absolute path to Beyound
 Compare.
 EOF
@@ -211,12 +205,11 @@ bcmergeOp () {
 
 chidUsage () {
 cat <<\EOF
-Usage:
+usage: jg chid [<options>] <Change-Id>
+   or: jg chid
 
-    jg chid [<Change-ID>]
-
-Find a commit with given Gerrit Change-ID. If <Change-ID> is not specified,
-get the Change-ID of the current commit.
+Find a commit with given Gerrit Change-Id, or get the Change-Id of the current
+commit if no Change-Id was given. Options will be passed to git-show.
 EOF
 }
 
@@ -259,14 +252,12 @@ chidOp () {
 
 pushUsage () {
 cat <<\EOF
-Usage:
+usage: jg push [-r <remote>] [<branch>] [<options>]
 
-    jg push [-r <remote>] [<branch>] [<option> ...]
+Push local commits to Gerrit for review. Options will be passed to git-push.
+Default <remote> and <branch> are the current. this command is equivalent to:
 
-Push local commits to Gerrit. Default <remote> and <branch> are the current.
-This command is equivalent to:
-
-    git push [<option> ...] <remote> HEAD:refs/for/<branch>
+    git push [<options>] <remote> HEAD:refs/for/<branch>
 EOF
 }
 
@@ -357,7 +348,7 @@ dogOp_ParseArgs () {
                 -l "$arg")
             if test ! "$br"
             then
-                >&2 Prompt red "error: '$arg' matches no branch."
+                >&2 Prompt red "error: \`$arg' matches no branch."
                 return 1
             fi
             brs="$brs $br"
@@ -395,15 +386,14 @@ dofOp () {
 }
 
 ghcrUsage () {
-cat <<EOF
+cat <<\EOF
 usage: jg ghcr [<options>] <name>
 
-Create a GitHub repository named <name>, which can only contains letters,
-digits, '-', '.' and '_'.
-
-Options:
     -u, --user <user>:<token>   GitHub username and access token
     -p, --private               Create a private repo instead
+
+Create a public or private GitHub repository with given name. Note that the
+name of repository can only contains letters, digits, `-', `.' and `_'.
 
 If not specified, <user> and <token> will be read from environment variable
 JG_GH_USER and JG_GH_TOKEN.
@@ -468,7 +458,7 @@ ghcrOp_validate () {
     if test "$(tr -d '[:alnum:]\-_.' <<<"$name")"
     then
         >&2 Prompt red \
-            "error: Repo name can contain only letters, digits, '-', '.' and '_'."
+            "error: Repo name can contain only letters, digits, \`-', \`.' and \`_'."
         return 1
     fi
     test ! "$user" && user=$JG_GH_USER
