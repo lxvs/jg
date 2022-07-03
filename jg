@@ -243,7 +243,7 @@ chidOp () {
     git rev-parse || return
     test "$chid" || return
     commit=$(git rev-list --all --format="%b%H" |
-        sed -n "/^Change-Id: $chid[[:xdigit:]]\{,40\}\$/{n;p;q}")
+        sed -n "/^Change-Id: \(I[[:xdigit:]]\{,40\}\)\{,1\}$chid[[:xdigit:]]\{,40\}\$/{n;p;q}")
     test "$commit" || return
     git show -s $args $commit $@
 }
