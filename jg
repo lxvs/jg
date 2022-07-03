@@ -260,14 +260,8 @@ EOF
 }
 
 pushOp () {
-    local branch=
-    local remote
-    local up
-    local rm_d
-    local br_d
-    local args=
-    local sw
-    local val
+    local branch= remote= args=
+    local up rm_d br_d sw val
     while test $# -ge 1
     do
         sw=$1
@@ -301,7 +295,7 @@ pushOp () {
     br_d=$(git rev-parse --abbrev-ref HEAD) || return
     up=$(git rev-parse --abbrev-ref @{push}) || return
     rm_d="${up%/$br_d}"
-    git push $args ${remote-$rm_d} HEAD:refs/for/"${branch-$br_d}"
+    git push $args ${remote:-$rm_d} HEAD:refs/for/"${branch:-$br_d}"
 }
 
 dogUsage () {
