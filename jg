@@ -166,9 +166,7 @@ bcdiffOp () {
     LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
-    git -c "diff.tool=bcjg" \
-        -c "difftool.bcjg.cmd=\"${bc}\" \"\$LOCAL\" \"\$REMOTE\"" \
-        difftool --dir-diff "$@"
+    git difftool --dir-diff --extcmd="$bc" "$@"
 }
 
 bcmergeUsage () {
