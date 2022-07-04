@@ -491,7 +491,7 @@ ParseArgs () {
 }
 
 main () {
-    local -r version="2.3.3"
+    local -r version="2.4.0"
     local -r website="https://lxvs.net/jg"
     local -r JG_BC_PATH=${JG_BC_PATH-}
     local -r JG_GH_USER=${JG_GH_USER-}

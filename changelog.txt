@@ -1,3 +1,13 @@
+2.4.0 - 2022-07-04
+
+	* Make `chid' match any part of Change-Id
+	* Replace some porcelain git commands with plumbing ones
+	* Use --extcmd instead of -c for difftool
+	* Refactor installation scripts
+	* Use error instead of ERROR in prompts to reduce fright
+	* Rewrite almost all usage texts
+	* Some improvements on coding
+
 2.3.3 - 2022-06-27
 
 	* Fix an issue which occurs when unable to find bcompare and
