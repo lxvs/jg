@@ -102,8 +102,8 @@ EOF
 Logo () {
 cat <<EOF
 
-    jg $VER
-    $INFO
+    jg $version
+    $website
 
 EOF
 }
@@ -467,7 +467,7 @@ ParseArgs () {
         return
     fi
     case $1 in
-    -v|--ver|--version)
+    -v|--version)
         Logo
         exit
         ;;
@@ -491,8 +491,8 @@ ParseArgs () {
 }
 
 main () {
-    local -r VER="2.3.3"
-    local -r INFO="https://lxvs.net/jg"
+    local -r version="2.3.3"
+    local -r website="https://lxvs.net/jg"
     local -r JG_BC_PATH=${JG_BC_PATH-}
     local -r JG_GH_USER=${JG_GH_USER-}
     local -r JG_GH_TOKEN=${JG_GH_TOKEN-}
