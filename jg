@@ -393,8 +393,8 @@ EOF
 }
 
 ghcrOp () {
-    local user= token= name= private
-    local sw val
+    local user= token= name=
+    local private sw val
     ghcrOp_parse "$@" || return
     ghcrOp_validate || return
     curl -s -X POST \
