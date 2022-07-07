@@ -10,6 +10,15 @@ popd () {
     command popd "$@" 1>/dev/null
 }
 
+die () {
+    while test $# -ge 1
+    do
+        Prompt >&2 red "$1"
+        shift
+    done
+    exit 1
+}
+
 Prompt () {
     local -r red="[91m"
     local -r green="[92m"
@@ -33,7 +42,7 @@ Prompt () {
         color=$yellow
         ;;
     *)
-        >&2 printf "warning: invalid color \`%s'\n" "$color"
+        printf >&2 "warning: invalid color \`%s'\n" "$color"
         printf "%s\n" "$@"
         return
         ;;
@@ -56,18 +65,12 @@ GetBeyondCompare () {
     local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
     local -r bc_reg_k="ExePath"
     test "$JG_BC_PATH" && bc=$JG_BC_PATH && return
-    if ! grep -qi '^win' <<<"$OS"
-    then
-        >&2 Prompt yellow "Sorry, this operation is Windows only for now."
-        return 1
-    fi
+    grep -qi '^win' <<<"$OS" ||
+        die "Sorry, this operation is Windows only for now."
     bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
-    if test ! "$bc"
-    then
-        >&2 Prompt red "error: Couldn't find Beyond Compare." \
-            "Please define the path to bcompare.exe in JG_BC_PATH and restart shell."
-        return 1
-    fi
+    test "$bc" ||
+        die "error: Couldn't find Beyond Compare." \
+        "Please define the absolute path to bcompare.exe in JG_BC_PATH and restart shell."
     bc=$(grep "ExePath" <<<"$bc" | sed 's/\s\{4\}.*\s\{4\}//')
 }
 
@@ -289,14 +292,10 @@ pushOp () {
             shift
             ;;
         *)
-            if test "$branch"
-            then
-                >&2 Prompt red "error: invalid argument: $sw"
-                return 1
-            else
-                branch=$sw
-                shift
-            fi
+            test "$branch" &&
+                die "error: invalid argument: \`$sw'"
+            branch=$sw
+            shift
             ;;
         esac
     done
@@ -345,13 +344,9 @@ dogOp_ParseArgs () {
         fi
         if printf "%s" "$arg" | grep -q '\*\|\?'
         then
-            br=$(git branch --format='%(refname:short)' ${isdogr+"-r"} \
-                -l "$arg")
-            if test ! "$br"
-            then
-                >&2 Prompt red "error: \`$arg' matches no branch."
-                return 1
-            fi
+            br=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
+            test "$br" ||
+                die "error: \`$arg' matches no branch"
             brs="$brs $br"
         else
             brs="$brs $arg"
@@ -422,48 +417,33 @@ ghcrOp_parse () {
             exit
             ;;
         -u|--user)
-            ParseSwitchValue "$@" || return
-            if grep -q ':' <<<"$val"
-            then
-                user=$(awk -F: '{print $1}' <<<$"$val")
-                token=$(awk -F: '{print $2}' <<<$"$val")
-            else
-                user=$val
-            fi
+            val=$(ParseSwitchValue "$@")
             shift 2
+            IFS=':' read -r user token <<<"$val"
             ;;
         -p|--private)
             private=1
             shift
             ;;
         *)
-            if test ! "$name"
-            then
-                name=$1
-                shift
-                continue
-            fi
-            >&2 Prompt red "error: invalid argument: %s" "$1"
-            return 1
+            test "$name" &&
+                die "error: invalid argument \`$1'"
+            name=$1
+            shift
             ;;
         esac
     done
 }
 
 ghcrOp_validate () {
-    if test ! "$name"
-    then
-        >&2 Prompt red "error: Repo name is required."
-        return 1
-    fi
-    if test "$(tr -d '[:alnum:]\-_.' <<<"$name")"
-    then
-        >&2 Prompt red \
-            "error: Repo name can contain only letters, digits, \`-', \`.' and \`_'."
-        return 1
-    fi
-    test ! "$user" && user=$JG_GH_USER
-    test ! "$token" && token=$JG_GH_TOKEN
+    test "$name" ||
+        die "error: Repo name is required."
+    test "$(tr -d '[:alnum:]\-_.' <<<"$name")" &&
+        die "error: Repo name can only contain letters, digits, \`-', \`.' and \`_'."
+    test "$user" ||
+        user=$JG_GH_USER
+    test "$token" ||
+        token=$JG_GH_TOKEN
     return 0
 }
 
@@ -492,9 +472,8 @@ ParseArgs () {
         return
         ;;
     *)
-        >&2 Prompt red "error: invalid operation - $1"
-        >&2 Usage
-        return 1
+        die "error: invalid argument \`$1'" \
+            "Try \`jg --help' for more information."
         ;;
     esac
 }
