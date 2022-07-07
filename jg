@@ -33,8 +33,9 @@ Prompt () {
         color=$yellow
         ;;
     *)
-        >&2 printf "error: invalid color \`%s'\n" "$color"
-        return 1
+        >&2 printf "warning: invalid color \`%s'\n" "$color"
+        printf "%s\n" "$@"
+        return
         ;;
     esac
     printf "${color}%s${reset}\n" "$@"
