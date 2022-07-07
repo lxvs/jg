@@ -212,18 +212,18 @@ bcmergeOp () {
 
 chidUsage () {
 cat <<\EOF
-usage: jg chid [<options>] <Change-Id>
+usage: jg chid [<options>] <pattern>
    or: jg chid
 
-Find a commit with given Gerrit Change-Id, or get the Change-Id of the current
-commit if no Change-Id was given. Options will be passed to git-show.
+Find a commit whose Gerrit Change-Id matches given sed-regex pattern. If no
+pattern was specified, get the Change-Id of the current commit. Options will be
+passed to git-show.
 EOF
 }
 
 chidOp () {
-    local chid=
+    local pattern= args=
     local commit
-    local args=
     if test $# = 0
     then
         git show -s HEAD --format=%b |
@@ -243,16 +243,16 @@ chidOp () {
             shift
             ;;
         *)
-            chid=$1
+            pattern=$1
             shift
             break
             ;;
         esac
     done
     git rev-parse || return
-    test "$chid" || return
+    test "$pattern" || return
     commit=$(git rev-list --all --format="%b%H" |
-        sed -n "/^Change-Id: \(I[[:xdigit:]]\{,40\}\)\{,1\}$chid[[:xdigit:]]\{,40\}\$/{n;p;q}")
+        sed -n "/^Change-Id: I\{,1\}[[:xdigit:]]\{,39\}$pattern/{n;p;q}")
     test "$commit" || return
     git show -s $args $commit $@
 }
