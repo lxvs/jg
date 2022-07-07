@@ -10,26 +10,34 @@ popd () {
     command popd "$@" 1>/dev/null
 }
 
-# $1    : Color - red/yellow/green
-# ...   : string lines
 Prompt () {
-    local -r RED="[91m"
-    local -r GRN="[92m"
-    local -r YLW="[93m"
-    local -r RST="[0m"
-    local -r COLOR_ARG=$1
-    local color
+    local -r red="[91m"
+    local -r green="[92m"
+    local -r yellow="[93m"
+    local -r reset="[0m"
+    local color=$1
     shift
-    case $COLOR_ARG in
-    r|red) color=$RED ;;
-    g|grn|green) color=$GRN ;;
-    y|ylw|yellow) color=$YLW ;;
+    if ! test -t 1
+    then
+        printf "%s\n" "$@"
+        return
+    fi
+    case $color in
+    r|red)
+        color=$red
+        ;;
+    g|grn|green)
+        color=$green
+        ;;
+    y|ylw|yellow)
+        color=$yellow
+        ;;
     *)
-        >&2 Prompt red "error: invalid color argument - $COLOR_ARG"
+        >&2 printf "error: invalid color \`%s'\n" "$color"
         return 1
         ;;
     esac
-    printf "${color}%s${RST}\n" "$@"
+    printf "${color}%s${reset}\n" "$@"
 }
 
 ParseSwitchValue () {
