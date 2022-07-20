@@ -91,12 +91,12 @@ These are all commands used in various situations:
 do things
     bcmerge     Resolve merge conflicts using Beyond Compare
     batch       Execute a command for each repo in current directory
-    push        Push to Gerrit for review
+    push        Push local commits to Gerrit for review
     ghcr        Create a GitHub repository
 
 examine things
     bcdiff      Show changes using Beyond Compare
-    chid        Find a commit using given Gerrit Change-Id, or otherwise
+    chid        Find a commit using given pattern; or get current Change-Id
     dog         Show commit logs a better way
     dogr        Show commit logs a better way
     adog        Show all commit logs a better way
