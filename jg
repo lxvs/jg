@@ -126,7 +126,7 @@ EOF
 }
 
 batchOp () {
-    local force="no"
+    local force=
     while test $# -ge 1
     do
         case $1 in
@@ -135,7 +135,7 @@ batchOp () {
             return
             ;;
         -f|--force)
-            force="yes"
+            force=1
             shift
             break
             ;;
@@ -144,15 +144,17 @@ batchOp () {
             ;;
         esac
     done
-    for repo in $(ls -d */ 2>/dev/null)
+    set +o noglob
+    for repo in */
     do
-        test ! -e "$repo/.git" && continue
-        pushd "$repo"
+        test ! -e "${repo}.git" && continue
+        pushd "$repo" || continue
+        git rev-parse 2>/dev/null || continue
         Prompt yellow "$repo"
-        test ! "$force" = "yes"
-        "$@" || return
+        "$@" || test "$force" || return
         popd
     done
+    set -o noglob
 }
 
 bcdiffUsage () {
