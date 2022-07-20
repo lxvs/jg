@@ -381,11 +381,12 @@ usage: jg ghcr [<options>] <name>
     -u, --user <user>:<token>   GitHub username and access token
     -p, --private               Create a private repo instead
 
-Create a public or private GitHub repository with given name. Note that the
-name of repository can only contains letters, digits, `-', `.' and `_'.
+Create a public (or private, if specified so) GitHub repository with given name.
+Note that the name of repository can only contain letters, digits, dashes (-),
+dots (.) and underscores (_).
 
-If not specified, <user> and <token> will be read from environment variable
-JG_GH_USER and JG_GH_TOKEN.
+If not specified, <user> and <token> (or <token> alone, if only <user> is
+specifed) will be read from environment variable JG_GH_USER and JG_GH_TOKEN.
 EOF
 }
 
