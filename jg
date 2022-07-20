@@ -51,14 +51,9 @@ Prompt () {
 }
 
 ParseSwitchValue () {
-    sw=$1
-    if test "$#" -ge 2 && ! grep -q '^-' <<<"$2"
-    then
-        val=$2
-        return
-    fi
-    >&2 Prompt red "error: $sw requires a value."
-    return 1
+    test "$#" -ge 2 ||
+        die "error: \`$1' requires a value"
+    printf "%s" "$2"
 }
 
 GetBeyondCompare () {
@@ -273,28 +268,26 @@ EOF
 
 pushOp () {
     local branch= remote= args=
-    local up rm_d br_d sw val
+    local up rm_d br_d val
     while test $# -ge 1
     do
-        sw=$1
-        case $sw in
+        case $1 in
         -h|--help)
             ${op}Usage
             return
             ;;
         -r|--remote)
-            ParseSwitchValue "$@" || return
-            remote=$val
+            remote=$(ParseSwitchValue "$@")
             shift 2
             ;;
         -*)
-            args="$args $sw"
+            args="$args $1"
             shift
             ;;
         *)
             test "$branch" &&
-                die "error: invalid argument: \`$sw'"
-            branch=$sw
+                die "error: invalid argument: \`$1'"
+            branch=$1
             shift
             ;;
         esac
@@ -398,7 +391,7 @@ EOF
 
 ghcrOp () {
     local user= token= name=
-    local private sw val
+    local private val
     ghcrOp_parse "$@" || return
     ghcrOp_validate || return
     curl -s -X POST \
