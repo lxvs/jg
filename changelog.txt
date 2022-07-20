@@ -1,3 +1,10 @@
+2.5.0 - 2022-07-20
+
+	* Make it POSIX compliant
+	* Make `chid' match pattern instead of part of Change-Id
+	* Improve usage texts
+	* Other improvements
+
 2.4.0 - 2022-07-04
 
 	* Make `chid' match any part of Change-Id
