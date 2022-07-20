@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -o nounset
 
 Logo () {
@@ -29,9 +29,7 @@ Uninstall () {
         >&2 printf "error: not installed\n"
         return 1
     fi
-    pushd "$target_dir" 1>/dev/null
-    rm -f "jg" || return
-    popd 1>/dev/null
+    rm -f "$target_dir/jg" || return
     rmdir "$target_dir" 2>/dev/null
     printf "Uninstall complete.\n"
 }
@@ -73,7 +71,7 @@ ParseArgs () {
 
 GetTargetDir () {
     local OS=${OS-}
-    if grep -Gqi "win" <<<"$OS"
+    if printf "%s" "$OS" | grep -qi "win"
     then
         target_dir="$HOME/bin"
     else
@@ -82,12 +80,12 @@ GetTargetDir () {
 }
 
 main () {
-    local -r script_name=$(basename "$0")
-    local -r script_dir=$(dirname "$0")
-    local -r name="jg installation script"
-    local -r link="https://lxvs.net/jg"
+    local script_name=$(basename "$0")
+    local script_dir=$(dirname "$0")
+    local name="jg installation script"
+    local link="https://lxvs.net/jg"
     local target_dir
-    pushd "$script_dir" 1>/dev/null
+    cd "$script_dir" || return
     GetTargetDir
     ParseArgs "$@" || return
 }

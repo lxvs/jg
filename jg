@@ -1,14 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 set -o nounset
 set -o noglob
-
-pushd () {
-    command pushd "$@" 1>/dev/null
-}
-
-popd () {
-    command popd "$@" 1>/dev/null
-}
 
 die () {
     while test $# -ge 1
@@ -20,10 +12,10 @@ die () {
 }
 
 Prompt () {
-    local -r red="[91m"
-    local -r green="[92m"
-    local -r yellow="[93m"
-    local -r reset="[0m"
+    local red="[91m"
+    local green="[92m"
+    local yellow="[93m"
+    local reset="[0m"
     local color=$1
     shift
     if ! test -t 1
@@ -57,16 +49,16 @@ ParseSwitchValue () {
 }
 
 GetBeyondCompare () {
-    local -r bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
-    local -r bc_reg_k="ExePath"
+    local bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
+    local bc_reg_k="ExePath"
     test "$JG_BC_PATH" && bc=$JG_BC_PATH && return
-    grep -qi '^win' <<<"$OS" ||
+    printf "%s" "$OS" | grep -qi '^win' ||
         die "Sorry, this operation is Windows only for now."
     bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
     test "$bc" ||
         die "error: Couldn't find Beyond Compare." \
         "Please define the absolute path to bcompare.exe in JG_BC_PATH and restart shell."
-    bc=$(grep "ExePath" <<<"$bc" | sed 's/\s\{4\}.*\s\{4\}//')
+    bc=$(printf "%s" "$bc" | grep "ExePath" | sed 's/\s\{4\}.*\s\{4\}//')
 }
 
 LookUpUsage () {
@@ -148,11 +140,12 @@ batchOp () {
     for repo in */
     do
         test ! -e "${repo}.git" && continue
-        pushd "$repo" || continue
-        git rev-parse 2>/dev/null || continue
-        Prompt yellow "$repo"
-        "$@" || test "$force" || return
-        popd
+        (
+            cd "$repo" || continue
+            git rev-parse 2>/dev/null || continue
+            Prompt yellow "$repo"
+            "$@" || test "$force" || return
+        )
     done
     set -o noglob
 }
@@ -252,7 +245,7 @@ chidOp () {
     git rev-parse || return
     test "$pattern" || return
     commit=$(git rev-list --all --format="%b%H" |
-        sed -n "/^Change-Id: I\{,1\}[[:xdigit:]]\{,39\}$pattern/{n;p;q}")
+        sed -n "/^Change-Id: I\{0,1\}[[:xdigit:]]\{0,39\}$pattern/{n;p;q}")
     test "$commit" || return
     git show -s $args $commit $@
 }
@@ -415,7 +408,7 @@ ghcrOp_parse () {
         -u|--user)
             val=$(ParseSwitchValue "$@")
             shift 2
-            IFS=':' read -r user token <<<"$val"
+            IFS=':' printf "%s" "$val" | read -r user token
             ;;
         -p|--private)
             private=1
@@ -434,7 +427,7 @@ ghcrOp_parse () {
 ghcrOp_validate () {
     test "$name" ||
         die "error: Repo name is required."
-    test "$(tr -d '[:alnum:]\-_.' <<<"$name")" &&
+    test "$(printf "%s" "$name" | tr -d '[:alnum:]\-_.')" &&
         die "error: Repo name can only contain letters, digits, \`-', \`.' and \`_'."
     test "$user" ||
         user=$JG_GH_USER
@@ -475,12 +468,12 @@ ParseArgs () {
 }
 
 main () {
-    local -r version="2.4.0"
-    local -r website="https://lxvs.net/jg"
-    local -r JG_BC_PATH=${JG_BC_PATH-}
-    local -r JG_GH_USER=${JG_GH_USER-}
-    local -r JG_GH_TOKEN=${JG_GH_TOKEN-}
-    local -r OS=${OS-}
+    local version="2.4.0"
+    local website="https://lxvs.net/jg"
+    local JG_BC_PATH=${JG_BC_PATH-}
+    local JG_GH_USER=${JG_GH_USER-}
+    local JG_GH_TOKEN=${JG_GH_TOKEN-}
+    local OS=${OS-}
     ParseArgs "$@" || return
 }
 
