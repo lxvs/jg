@@ -12,8 +12,8 @@ EOF
 
 Usage () {
 cat <<EOF
-usage: ./$script_name
-   or: ./$script_name uninstall
+usage: ./install.sh
+   or: ./install.sh uninstall
 EOF
 }
 
@@ -35,7 +35,6 @@ Uninstall () {
 }
 
 ParseArgs () {
-    local val
     if test $# -eq 0
     then
         Install
@@ -48,11 +47,11 @@ ParseArgs () {
             Usage
             exit 0
             ;;
-        0|uninstall)
+        0|uninstall|--uninstall)
             Uninstall
             return
             ;;
-        1|install)
+        1|install|--install)
             Install
             return
             ;;
@@ -80,12 +79,10 @@ GetTargetDir () {
 }
 
 main () {
-    local script_name=$(basename "$0")
-    local script_dir=$(dirname "$0")
     local name="jg installation script"
     local link="https://lxvs.net/jg"
     local target_dir
-    cd "$script_dir" || return
+    cd "$(dirname "$0")" || return
     GetTargetDir
     ParseArgs "$@" || return
 }
