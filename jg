@@ -388,8 +388,8 @@ EOF
 ghcrOp () {
     local user= token= name=
     local private val
-    ghcrOp_parse "$@" || return
-    ghcrOp_validate || return
+    ghcrOp_parse "$@"
+    ghcrOp_validate
     curl -s -X POST \
         ${user:+-u $user${token:+:$token}} \
         -H "Accept: application/vnd.github.v3+json" \
@@ -433,7 +433,6 @@ ghcrOp_validate () {
         user=$JG_GH_USER
     test "$token" ||
         token=$JG_GH_TOKEN
-    return 0
 }
 
 ParseArgs () {
