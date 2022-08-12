@@ -408,7 +408,8 @@ ghcrOp_parse () {
         -u|--user)
             val=$(ParseSwitchValue "$@")
             shift 2
-            IFS=':' printf "%s" "$val" | read -r user token
+            user=$(printf "%s" "$val" | cut -d ':' -f 1)
+            token=$(printf "%s" "$val" | cut -d ':' -f 2)
             ;;
         -p|--private)
             private=1
