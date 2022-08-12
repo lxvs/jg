@@ -468,7 +468,7 @@ ParseArgs () {
 }
 
 main () {
-    local version="2.5.0"
+    local version="2.5.1"
     local website="https://lxvs.net/jg"
     local JG_BC_PATH=${JG_BC_PATH-}
     local JG_GH_USER=${JG_GH_USER-}
