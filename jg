@@ -81,6 +81,7 @@ usage: jg [-v | --version] [-h | --help] <command> [<args>]
 These are all commands used in various situations:
 
 do things
+    archive     Create an archive of a tag or commit
     bcmerge     Resolve merge conflicts using Beyond Compare
     batch       Execute a command for each repo in current directory
     push        Push local commits to Gerrit for review
@@ -105,6 +106,88 @@ cat <<EOF
     $website
 
 EOF
+}
+
+archiveUsage () {
+cat <<EOF
+usage: jg archive [<options>] [<commit-ish>] [<path>...]
+
+This is a modified version of \`git archive', with below differences:
+
+    Archive with all submodules by default; can be disabled by flag \`-n' or
+    \`--no-with-submodules'.
+
+    Always archive the whole repository, even executed in a sub-directory (but
+    not in a submodule).
+
+    By default, specify \`--prefix=DIRNAME-DESCRIPTION/', where DIRNAME is name
+    of the repository, and DESCRIPTION is whatever output of \`git describe
+    --always', prefixed \`v' removed, if there is.
+
+    By default, write the archive to DIRNAME-DESCRIPTION.tgz in root directory
+    of the repository.
+
+options:
+    --with-submodules       archive with all submodules; this is default
+    -n, --no-with-submodules
+                            archive without any submodule
+    --worktree-attributes   read .gitattributes in working directory
+    -NUM                    set compression level
+EOF
+}
+
+archiveOp () {
+    local w=1 wa= num=5
+    local toplevel dirname description prefix tmpdir
+    while test $# -ge 1
+    do
+        case $1 in
+        -n|--no-with-submodules)
+            w=
+            shift
+            ;;
+        --with-submodules)
+            w=1
+            shift
+            ;;
+        --worktree-attributes)
+            wa=$1
+            shift
+            ;;
+        -1|-2|-3|-4|-5|-6|-7|-8|-9)
+            num=${1#-}
+            shift
+            ;;
+        -h|--help)
+            archiveUsage
+            exit
+            ;;
+        *)
+            die "error: invalid argument \`$1'"
+            ;;
+        esac
+    done
+    (
+        cd "$(git rev-parse --show-toplevel)" || return
+        toplevel=$PWD
+        description=$(git describe --always) || return
+        description=${description#v} || return
+        dirname=$(basename -- "$toplevel") || return
+        prefix="$dirname-$description"
+        tmpdir=$(mktemp --directory) || return
+        trap archiveOp_cleanup EXIT
+        mkdir -p "$tmpdir/$prefix" || return
+        git archive $wa --prefix="$prefix/" HEAD | tar -x -C "$tmpdir" || return
+        if test "$w"
+        then
+            git submodule foreach --quiet --recursive 'git archive '$wa' --prefix="${PWD#'"$toplevel/"'}/" HEAD | tar -x -C '"$tmpdir/$prefix/" || return
+        fi
+        tar --use-compress-program="gzip -$num" -c -f "$prefix.tgz" -C "$tmpdir" "$prefix" || return
+    )
+}
+
+archiveOp_cleanup () {
+    rm -rf "$tmpdir"
 }
 
 batchUsage () {
@@ -454,7 +537,7 @@ ParseArgs () {
         Usage
         exit
         ;;
-    batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|ghcr)
+    archive|batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|ghcr)
         op=$1
         shift
         ${op}Op "$@"
