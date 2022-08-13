@@ -75,7 +75,7 @@ LookUpUsage () {
 }
 
 Usage () {
-cat <<\EOF
+cat <<EOF
 usage: jg [-v | --version] [-h | --help] <command> [<args>]
 
 These are all commands used in various situations:
@@ -94,7 +94,7 @@ examine things
     adog        Show all commit logs a better way
     dof         Show commit logs a better way, first parent only
 
-Use `jg <command> --help' for detailed usage on the specific command.
+Use \`jg <command> --help' for detailed usage on the specific command.
 EOF
 }
 
@@ -108,7 +108,7 @@ EOF
 }
 
 batchUsage () {
-cat <<\EOF
+cat <<EOF
 usage: jg batch [<options>] <command> [<command-args> ...]
 
     -f, --force     Do not break when error
@@ -151,11 +151,11 @@ batchOp () {
 }
 
 bcdiffUsage () {
-cat <<\EOF
+cat <<EOF
 usage: jg bcdiff [<options>] [<commit> [<commit>]] [--] [<path>...]
 
 Show changes using Beyond Compare. Options will be passed to git-difftool.
-Try `git difftool -h' or `git help difftool' for more information.
+Try \`git difftool -h' or \`git help difftool' for more information.
 
 Path to Beyond Compare will be queried from Registry; it can be overridden
 by setting environment variable JG_BC_PATH to the absolute path to Beyound
@@ -172,13 +172,13 @@ bcdiffOp () {
 }
 
 bcmergeUsage () {
-cat <<\EOF
+cat <<EOF
 usage: jg bcmerge [<file to merge> ...]
 
 Resolve merge conflicts using Beyond Compare. If <file to merge> is not
 specified, resolve all conflicted files one by one.
 
-By default, git creates `*.orig' backup files while resolving merges. These
+By default, git creates \`*.orig' backup files while resolving merges. These
 are safe to remove once a file has been merged and its git mergetool
 session has completed.
 
@@ -204,7 +204,7 @@ bcmergeOp () {
 }
 
 chidUsage () {
-cat <<\EOF
+cat <<EOF
 usage: jg chid [<options>] <pattern>
    or: jg chid
 
@@ -251,7 +251,7 @@ chidOp () {
 }
 
 pushUsage () {
-cat <<\EOF
+cat <<EOF
 usage: jg push [-r <remote>] [<branch>] [<options>]
 
 Push local commits to Gerrit for review. Options will be passed to git-push.
@@ -370,7 +370,7 @@ dofOp () {
 }
 
 ghcrUsage () {
-cat <<\EOF
+cat <<EOF
 usage: jg ghcr [<options>] <name>
 
     -u, --user <user>:<token>   GitHub username and access token
