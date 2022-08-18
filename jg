@@ -112,20 +112,24 @@ archiveUsage () {
 cat <<EOF
 usage: jg archive [<options>] [<commit-ish>] [<path>...]
 
-This is a modified version of \`git archive', with below differences:
+This is a modified version of git-archive, with below differences:
 
-    Archive with all submodules by default; can be disabled by flag \`-n' or
-    \`--no-with-submodules'.
+    Archive with checked out submodules at HEAD non-recursively by default; can
+    be disabled by flag \`-n' or \`--no-with-submodules'.
+
+    <commit-ish> is HEAD, if not specified. Note that submodules checked out at
+    HEAD, not <commit-ish>, will be archived, if \`-n' or \`--no-with-submodules'
+    is absent, and submodules will be archived at their own HEAD.
 
     Always archive the whole repository, even executed in a sub-directory (but
     not in a submodule).
 
-    By default, specify \`--prefix=DIRNAME-DESCRIPTION/', where DIRNAME is name
-    of the repository, and DESCRIPTION is whatever output of \`git describe
-    --always', prefixed \`v' removed, if there is.
+    Specify \`--prefix=DIRNAME-DESCRIPTION/', where DIRNAME is the name of the
+    repository, and DESCRIPTION is whatever output of \`git describe --always
+    <commit-ish>', prefixed \`v' removed, if there is.
 
-    By default, write the archive to DIRNAME-DESCRIPTION.tgz in root directory
-    of the repository.
+    Write the archive to DIRNAME-DESCRIPTION.tgz in root directory of the
+    repository.
 
 options:
     --with-submodules       archive with all submodules; this is default
@@ -139,6 +143,7 @@ EOF
 archiveOp () {
     local w=1 wa= num=5
     local toplevel dirname description prefix tmpdir
+    local commitish=
     while test $# -ge 1
     do
         case $1 in
@@ -162,22 +167,30 @@ archiveOp () {
             archiveUsage
             exit
             ;;
+        -*)
+            die "error: invalid switch \`$1'"
+            ;;
         *)
-            die "error: invalid argument \`$1'"
+            test "$commitish" && die "error: invalid argument \`$1'"
+            commitish=$1
+            shift
             ;;
         esac
     done
+    commitish=${commitish:-HEAD}
     (
         cd "$(git rev-parse --show-toplevel)" || return
         toplevel=$PWD
-        description=$(git describe --always) || return
+        description=$(git describe --always "$commitish") || return
         description=${description#v} || return
         dirname=$(basename -- "$toplevel") || return
         prefix="$dirname-$description"
         tmpdir=$(mktemp --directory) || return
         trap archiveOp_cleanup EXIT
         mkdir -p "$tmpdir/$prefix" || return
-        git archive $wa --prefix="$prefix/" HEAD | tar -x -C "$tmpdir" || return
+        git rev-parse --verify --quiet "$commitish" >/dev/null ||
+            die "error: not a valid object name: \`$commitish'"
+        git archive $wa --prefix="$prefix/" "$commitish" | tar -x -C "$tmpdir" || return
         if test "$w"
         then
             git submodule foreach --quiet --recursive 'git archive '$wa' --prefix="${PWD#'"$toplevel/"'}/" HEAD | tar -x -C '"$tmpdir/$prefix/" || return
