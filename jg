@@ -129,19 +129,23 @@ This is a modified version of git-archive, with below differences:
     <commit-ish>', prefixed \`v' removed, if there is.
 
     Write the archive to DIRNAME-DESCRIPTION.tgz in root directory of the
-    repository.
+    repository, unless it is piped, redirected, or \`-O'/\`--stdout' is specified,
+    in which case write tar (not tgz) to stdout only.
 
 options:
     --with-submodules       archive with all submodules; this is default
     -n, --no-with-submodules
                             archive without any submodule
+    -O, --stdout            write tar to stdout only; this is default when being
+                              piped or redirected
+    --no-stdout             always output a tgz file
     --worktree-attributes   read .gitattributes in working directory
     -NUM                    set compression level
 EOF
 }
 
 archiveOp () {
-    local w=1 wa= num=5
+    local w=1 wa= num=5 stdout=auto
     local toplevel dirname description prefix tmpdir
     local commitish=
     while test $# -ge 1
@@ -163,6 +167,14 @@ archiveOp () {
             num=${1#-}
             shift
             ;;
+        -O|--stdout)
+            stdout=1
+            shift
+            ;;
+        --no-stdout)
+            stdout=
+            shift
+            ;;
         -h|--help)
             archiveUsage
             exit
@@ -177,6 +189,15 @@ archiveOp () {
             ;;
         esac
     done
+    if test "$stdout" = "auto"
+    then
+        if test -t 1
+        then
+            stdout=
+        else
+            stdout=1
+        fi
+    fi
     commitish=${commitish:-HEAD}
     (
         cd "$(git rev-parse --show-toplevel)" || return
@@ -195,7 +216,12 @@ archiveOp () {
         then
             git submodule foreach --quiet --recursive 'git archive '$wa' --prefix="${PWD#'"$toplevel/"'}/" HEAD | tar -x -C '"$tmpdir/$prefix/" || return
         fi
-        tar --use-compress-program="gzip -$num" -c -f "$prefix.tgz" -C "$tmpdir" "$prefix" || return
+        if test "$stdout"
+        then
+            tar -c -f - -C "$tmpdir" "$prefix" || return
+        else
+            tar --use-compress-program="gzip -$num" -c -f "$prefix.tgz" -C "$tmpdir" "$prefix" || return
+        fi
     )
 }
 
