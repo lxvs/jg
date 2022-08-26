@@ -271,7 +271,7 @@ batchOp () {
             ec=$?
             test $ec -eq 0 || exit $ec
             Prompt yellow "$JG_BATCH_REPO"
-            "$@"
+            eval "$@"
             ec=$?
             test $ec -eq 0 || exit $ec
         )
