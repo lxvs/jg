@@ -240,7 +240,7 @@ EOF
 }
 
 batchOp () {
-    local force=
+    local force= ec=
     while test $# -ge 1
     do
         case $1 in
@@ -263,13 +263,24 @@ batchOp () {
     do
         test ! -e "${repo}.git" && continue
         (
-            cd "$repo" || continue
-            git rev-parse 2>/dev/null || continue
-            Prompt yellow "$repo"
-            "$@" || test "$force" || return
+            cd "$repo"
+            ec=$?
+            test $ec -eq 0 || exit $ec
+            JG_BATCH_REPO=$(basename -- $PWD)
+            git rev-parse 2>/dev/null
+            ec=$?
+            test $ec -eq 0 || exit $ec
+            Prompt yellow "$JG_BATCH_REPO"
+            "$@"
+            ec=$?
+            test $ec -eq 0 || exit $ec
         )
+        ec=$?
+        test $ec -eq 0 || test "$force" || break
     done
     set -o noglob
+    test $ec -eq 0 && return
+    die "error: returned status is $ec; abort"
 }
 
 bcdiffUsage () {
