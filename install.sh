@@ -80,7 +80,7 @@ GetTargetDir () {
 
 main () {
     local name="jg installation script"
-    local link="https://lxvs.net/jg"
+    local link="https://gitlab.com/lzhh/jg"
     local target_dir
     cd "$(dirname "$0")" || return
     GetTargetDir
