@@ -1,3 +1,11 @@
+2.7.0 - 2023-02-02
+
+	* Complete `archive' operation
+	* Add flag -O/--stdout to write tar to stdout only
+	* Use `eval' for `batch' operation
+	* Fix that `batch' always acts like --force
+	* Fix that grep 3.8 complains about the stray back slash
+
 2.6.0 - 2022-08-16
 
 	* Add `archive' operation to archive with all submodules
