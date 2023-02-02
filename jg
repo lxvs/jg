@@ -446,7 +446,7 @@ dogOp () {
     local brs
     LookUpUsage "$@" || return
     brs="$@"
-    if printf "%s" "$@" | grep -q '\*\|\?'
+    if printf "%s" "$@" | grep -q '\*\|?'
     then
         dogOp_ParseArgs "$@" || return
     fi
@@ -463,7 +463,7 @@ dogOp_ParseArgs () {
             brs="$brs $@"
             break
         fi
-        if printf "%s" "$arg" | grep -q '\*\|\?'
+        if printf "%s" "$arg" | grep -q '\*\|?'
         then
             br=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
             test "$br" ||
