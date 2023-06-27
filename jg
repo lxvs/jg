@@ -378,7 +378,7 @@ chidOp () {
     git rev-parse || return
     test "$pattern" || return
     commit=$(git rev-list --all --format="%b%H" |
-        sed -n "/^Change-Id: I\{0,1\}[[:xdigit:]]\{0,39\}$pattern/{n;p;q}")
+        sed -n "/^Change-Id: I\{0,1\}[[:xdigit:]]\{0,39\}$pattern/{n;p}")
     test "$commit" || return
     git show -s $args $commit $@
 }
