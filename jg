@@ -352,7 +352,7 @@ chidOp () {
     local commit
     if test $# = 0
     then
-        git show -s HEAD --format=%b |
+        git show --no-patch HEAD --format=%b |
             grep '^Change-Id: ' |
             sed 's/^Change-Id: //'
         return
@@ -380,7 +380,7 @@ chidOp () {
     commit=$(git rev-list --all --format="%b%H" |
         sed -n "/^Change-Id: I\{0,1\}[[:xdigit:]]\{0,39\}$pattern/{n;p}")
     test "$commit" || return
-    git show -s $args $commit $@
+    git show --no-patch $args $commit $@
 }
 
 pushUsage () {
