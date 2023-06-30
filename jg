@@ -84,6 +84,7 @@ do things
     archive     Create an archive of a tag or commit
     bcmerge     Resolve merge conflicts using Beyond Compare
     batch       Execute a command for each repo in current directory
+    fixup       Fixup a commit and auto squashing rebase it non-interactively
     push        Push local commits to Gerrit for review
     ghcr        Create a GitHub repository
 
@@ -502,6 +503,71 @@ dofOp () {
     git log --decorate --oneline --first-parent "$@"
 }
 
+fixupUsage () {
+cat <<EOF
+usage: jg fixup [-n|--no-rebase] <commit> [<options>]
+
+    -n, --no-rebase     Fixup only; do not rebase
+
+It is equivalent to
+
+    git commit --fixup=<commit> [<options>]
+
+and then (unless -n or --no-rebase is specified)
+
+    git rebase --interactive --autosquash --update-refs <commit>~2
+
+and the editor won't pop out.
+
+EOF
+}
+
+fixupOp () {
+    local commit= n= options=
+    fixupOp_parse "$@"
+    fixupOp_validate
+    git commit --fixup="$commit" $options || return
+    test "$n" && return
+    if git rebase -h 2>&1 | grep -q -- --update-refs
+    then
+        git -c sequence.editor=: rebase --interactive --autosquash --update-refs "$commit~2"
+    else
+        git -c sequence.editor=: rebase --interactive --autosquash "$commit~2"
+    fi
+}
+
+fixupOp_parse () {
+    while test $# -ge 1
+    do
+        case $1 in
+        -h|--help)
+            ${op}Usage
+            exit
+            ;;
+        -n|--no-rebase)
+            n=1
+            shift
+            ;;
+        -*)
+            options="$options $1"
+            shift
+            ;;
+        *)
+            test "$commit" &&
+                die "error: invalid argument \`$1'"
+            commit=$1
+            shift
+            ;;
+        esac
+    done
+}
+
+fixupOp_validate () {
+    test "$commit" || die "error: <commit> not speficied"
+    git rev-parse --verify --quiet --no-revs "$commit^2" &&
+        die "error: cannot fixup a merge"
+}
+
 ghcrUsage () {
 cat <<EOF
 usage: jg ghcr [<options>] <name>
@@ -587,7 +653,7 @@ ParseArgs () {
         Usage
         exit
         ;;
-    archive|batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|ghcr)
+    archive|batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|fixup|ghcr)
         op=$1
         shift
         ${op}Op "$@"
