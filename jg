@@ -528,12 +528,9 @@ fixupOp () {
     fixupOp_validate
     git commit --fixup="$commit" $options || return
     test "$n" && return
-    if git rebase -h 2>&1 | grep -q -- --update-refs
-    then
-        git -c sequence.editor=: rebase --interactive --autosquash --update-refs "$commit~2"
-    else
-        git -c sequence.editor=: rebase --interactive --autosquash "$commit~2"
-    fi
+    git -c sequence.editor=: \
+        -c rebase.updateRefs=true \
+        rebase --interactive --autosquash "$commit~2"
 }
 
 fixupOp_parse () {
