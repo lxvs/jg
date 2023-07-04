@@ -1,3 +1,8 @@
+2.8.0 - 2023-07-04
+
+	* Add `fixup' operation
+	* Operation `chid' returns all matching commits now
+
 2.7.0 - 2023-02-02
 
 	* Complete `archive' operation

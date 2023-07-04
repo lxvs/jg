@@ -664,7 +664,7 @@ ParseArgs () {
 }
 
 main () {
-    local version="2.7.0"
+    local version="2.8.0"
     local website="https://gitlab.com/lzhh/jg"
     local JG_BC_PATH=${JG_BC_PATH-}
     local JG_GH_USER=${JG_GH_USER-}
