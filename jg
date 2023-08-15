@@ -86,7 +86,6 @@ do things
     batch       Execute a command for each repo in current directory
     fixup       Fixup a commit and auto squashing rebase it non-interactively
     push        Push local commits to Gerrit for review
-    ghcr        Create a GitHub repository
 
 examine things
     bcdiff      Show changes using Beyond Compare
@@ -95,6 +94,9 @@ examine things
     dogr        Show commit logs a better way
     adog        Show all commit logs a better way
     dof         Show commit logs a better way, first parent only
+
+for GitHub
+    gh-create-repo  Create a public or private GitHub repository
 
 Use \`jg <command> --help' for detailed usage on the specific command.
 EOF
@@ -566,8 +568,16 @@ fixupOp_validate () {
 }
 
 ghcrUsage () {
+    gh_create_repoUsage
+}
+
+ghcrOp () {
+    gh_create_repoOp "$@"
+}
+
+gh_create_repoUsage () {
 cat <<EOF
-usage: jg ghcr [<options>] <name>
+usage: jg gh-create-repo [<options>] <name>
 
 options:
     -t, --token <token>         GitHub personal access token
@@ -588,11 +598,11 @@ Write'.
 EOF
 }
 
-ghcrOp () {
+gh_create_repoOp () {
     local token= name=
     local private val
-    ghcrOp_parse "$@"
-    ghcrOp_validate
+    gh_create_repoOp_parse "$@"
+    gh_create_repoOp_validate
     curl -L -s -X POST \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $token" \
@@ -601,7 +611,7 @@ ghcrOp () {
         -d "{\"name\": \"$name\"${private:+, \"private\": true}}"
 }
 
-ghcrOp_parse () {
+gh_create_repoOp_parse () {
     while test $# -ge 1
     do
         case $1 in
@@ -627,7 +637,7 @@ ghcrOp_parse () {
     done
 }
 
-ghcrOp_validate () {
+gh_create_repoOp_validate () {
     test "$name" ||
         die "error: Repo name is required."
     test "$(printf "%s" "$name" | tr -d '[:alnum:]\-_.')" &&
@@ -658,6 +668,12 @@ ParseArgs () {
         ;;
     archive|batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|fixup|ghcr)
         op=$1
+        shift
+        ${op}Op "$@"
+        return
+        ;;
+    gh-create-repo)
+        op=$(printf "%s" "$1" | tr '-' '_')
         shift
         ${op}Op "$@"
         return
