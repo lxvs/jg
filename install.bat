@@ -39,7 +39,7 @@ if "%~1" == "" (
 :Settings
 set "target_dir=%USERPROFILE%\bin"
 set "name=jg installation script"
-set "link=https://gitlab.com/lzhh/jg"
+set "link=https://github.com/lxvs/jg"
 set "filelist=jg"
 title %name%
 exit /b
