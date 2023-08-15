@@ -569,28 +569,36 @@ ghcrUsage () {
 cat <<EOF
 usage: jg ghcr [<options>] <name>
 
-    -u, --user <user>:<token>   GitHub username and access token
+options:
+    -t, --token <token>         GitHub personal access token
     -p, --private               Create a private repo instead
 
 Create a public (or private, if specified so) GitHub repository with given name.
 Note that the name of repository can only contain letters, digits, dashes (-),
 dots (.) and underscores (_).
 
-If not specified, <user> and <token> (or <token> alone, if only <user> is
-specifed) will be read from environment variable JG_GH_USER and JG_GH_TOKEN.
+If not specified, <token> will be read from environment variable JG_GH_TOKEN.
+
+To use this command, first you need to create a personal access token in GitHub
+Settings -> Developer settings -> Personal access tokens -> Fine-grained
+personal access tokens -> Generate new token.  In \`Repository access' section,
+either \`All repositories' or \`Only select repositories' needs to be selected,
+and Repository permissions -> Administration needs to be set to \`Read and
+Write'.
 EOF
 }
 
 ghcrOp () {
-    local user= token= name=
+    local token= name=
     local private val
     ghcrOp_parse "$@"
     ghcrOp_validate
-    curl -s -X POST \
-        ${user:+-u $user${token:+:$token}} \
-        -H "Accept: application/vnd.github.v3+json" \
+    curl -L -s -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $token" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
         https://api.github.com/user/repos \
-        -d "{\"name\": \"$name\"${private:+, \"private\": \"true\"}}"
+        -d "{\"name\": \"$name\"${private:+, \"private\": true}}"
 }
 
 ghcrOp_parse () {
@@ -601,11 +609,9 @@ ghcrOp_parse () {
             ${op}Usage
             exit
             ;;
-        -u|--user)
-            val=$(ParseSwitchValue "$@")
+        -t|--token)
+            token=$(ParseSwitchValue "$@")
             shift 2
-            user=$(printf "%s" "$val" | cut -d ':' -f 1)
-            token=$(printf "%s" "$val" | cut -d ':' -f 2)
             ;;
         -p|--private)
             private=1
@@ -626,10 +632,10 @@ ghcrOp_validate () {
         die "error: Repo name is required."
     test "$(printf "%s" "$name" | tr -d '[:alnum:]\-_.')" &&
         die "error: Repo name can only contain letters, digits, \`-', \`.' and \`_'."
-    test "$user" ||
-        user=$JG_GH_USER
     test "$token" ||
         token=$JG_GH_TOKEN
+    test "$token" ||
+        die "error: either provide --token, or set environment variable JG_GH_TOKEN"
 }
 
 ParseArgs () {
