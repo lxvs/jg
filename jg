@@ -400,7 +400,7 @@ EOF
 
 pushOp () {
     local branch= remote= args=
-    local up rm_d br_d val
+    local up rm_d br_d
     while test $# -ge 1
     do
         case $1 in
@@ -613,7 +613,7 @@ EOF
 
 gh_create_repoOp () {
     local token= name=
-    local private val
+    local private
     gh_create_repoOp_parse "$@"
     gh_create_repoOp_validate
     curl -L -s -X POST \
