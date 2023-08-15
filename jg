@@ -96,6 +96,7 @@ examine things
     dof         Show commit logs a better way, first parent only
 
 for GitHub
+    gh-help         Show help on the prerequisites to use below commands
     gh-create-repo  Create a public or private GitHub repository
 
 Use \`jg <command> --help' for detailed usage on the specific command.
@@ -567,6 +568,23 @@ fixupOp_validate () {
         die "error: cannot fixup a merge"
 }
 
+gh_helpOp () {
+cat <<EOF
+To use \`For GitHub' commands like \`gh-create-repo', first you need to create
+a personal access token.
+
+ * Open github.com and login to your account.
+ * Navigate to GitHub Settings -> Developer settings -> Personal access tokens
+   -> Fine-grained personal access tokens.
+ * Click \`Generate new token'.
+ * In \`Repository access' section, either \`All repositories' or \`Only select
+   repositories' needs to be selected.
+ * Set Repository permissions -> Administration to \`Read and Write'.
+ * Click \`Generate token' at the bottom of the page.
+ * Copy the generated token.  Once you leave the page, you cannot see it again.
+EOF
+}
+
 ghcrUsage () {
     gh_create_repoUsage
 }
@@ -589,12 +607,7 @@ dots (.) and underscores (_).
 
 If not specified, <token> will be read from environment variable JG_GH_TOKEN.
 
-To use this command, first you need to create a personal access token in GitHub
-Settings -> Developer settings -> Personal access tokens -> Fine-grained
-personal access tokens -> Generate new token.  In \`Repository access' section,
-either \`All repositories' or \`Only select repositories' needs to be selected,
-and Repository permissions -> Administration needs to be set to \`Read and
-Write'.
+Try \`jg gh-help' for more information on GitHub personal access token.
 EOF
 }
 
@@ -672,7 +685,7 @@ ParseArgs () {
         ${op}Op "$@"
         return
         ;;
-    gh-create-repo)
+    gh-help|gh-create-repo)
         op=$(printf "%s" "$1" | tr '-' '_')
         shift
         ${op}Op "$@"
