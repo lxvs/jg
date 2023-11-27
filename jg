@@ -438,37 +438,24 @@ EOF
 }
 
 dogOp () {
-    local brs
+    local parsing=1 matched
     LookUpUsage "$@" || return
-    brs="$@"
-    if printf "%s" "$@" | grep -q '\*\|?'
-    then
-        dogOp_ParseArgs "$@" || return
-    fi
-    git log --decorate --oneline --graph $brs
-}
-
-dogOp_ParseArgs () {
-    brs=
-    local br=
     for arg in "$@"
     do
-        if test "$arg" = "--"
+        test "$arg" = "--" && parsing=
+        if test "$parsing" &&
+            printf "%s" "$arg" | grep -q '\*\|?'
         then
-            brs="$brs $@"
-            break
-        fi
-        if printf "%s" "$arg" | grep -q '\*\|?'
-        then
-            br=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
-            test "$br" ||
+            matched=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
+            test "$matched" ||
                 die "error: \`$arg' matches no branch"
-            brs="$brs $br"
+            set -- "$@" "$matched"
         else
-            brs="$brs $arg"
+            set -- "$@" "$arg"
         fi
         shift
     done
+    git log --decorate --oneline --graph "$@"
 }
 
 dogrUsage () {
