@@ -81,7 +81,6 @@ usage: jg [-v | --version] [-h | --help] <command> [<args>]
 These are all commands used in various situations:
 
 do things
-    archive     Create an archive of a tag or commit
     bcmerge     Resolve merge conflicts using Beyond Compare
     batch       Execute a command for each repo in current directory
     fixup       Fixup a commit and auto squashing rebase it non-interactively
@@ -94,6 +93,7 @@ examine things
     dogr        Show commit logs a better way
     adog        Show all commit logs a better way
     dof         Show commit logs a better way, first parent only
+    ls-files    List all files, including initialized submodules by default
 
 for GitHub
     gh-help         Show help on the prerequisites to use below commands
@@ -111,127 +111,6 @@ cat <<EOF
     $website
 
 EOF
-}
-
-archiveUsage () {
-cat <<EOF
-usage: jg archive [<options>] [<commit-ish>] [<path>...]
-
-This is a modified version of git-archive, with below differences:
-
-    Archive with checked out submodules at HEAD non-recursively by default; can
-    be disabled by flag \`-n' or \`--no-with-submodules'.
-
-    <commit-ish> is HEAD, if not specified. Note that submodules checked out at
-    HEAD, not <commit-ish>, will be archived, if \`-n' or \`--no-with-submodules'
-    is absent, and submodules will be archived at their own HEAD.
-
-    Always archive the whole repository, even executed in a sub-directory (but
-    not in a submodule).
-
-    Specify \`--prefix=DIRNAME-DESCRIPTION/', where DIRNAME is the name of the
-    repository, and DESCRIPTION is whatever output of \`git describe --always
-    <commit-ish>', prefixed \`v' removed, if there is.
-
-    Write the archive to DIRNAME-DESCRIPTION.tgz in root directory of the
-    repository, unless it is piped, redirected, or \`-O'/\`--stdout' is specified,
-    in which case write tar (not tgz) to stdout only.
-
-options:
-    --with-submodules       archive with all submodules; this is default
-    -n, --no-with-submodules
-                            archive without any submodule
-    -O, --stdout            write tar to stdout only; this is default when being
-                              piped or redirected
-    --no-stdout             always output a tgz file
-    --worktree-attributes   read .gitattributes in working directory
-    -NUM                    set compression level
-EOF
-}
-
-archiveOp () {
-    local w=1 wa= num=5 stdout=auto
-    local toplevel dirname description prefix tmpdir
-    local commitish=
-    while test $# -ge 1
-    do
-        case $1 in
-        -n|--no-with-submodules)
-            w=
-            shift
-            ;;
-        --with-submodules)
-            w=1
-            shift
-            ;;
-        --worktree-attributes)
-            wa=$1
-            shift
-            ;;
-        -1|-2|-3|-4|-5|-6|-7|-8|-9)
-            num=${1#-}
-            shift
-            ;;
-        -O|--stdout)
-            stdout=1
-            shift
-            ;;
-        --no-stdout)
-            stdout=
-            shift
-            ;;
-        -h|--help)
-            archiveUsage
-            exit
-            ;;
-        -*)
-            die "error: invalid switch \`$1'"
-            ;;
-        *)
-            test "$commitish" && die "error: invalid argument \`$1'"
-            commitish=$1
-            shift
-            ;;
-        esac
-    done
-    if test "$stdout" = "auto"
-    then
-        if test -t 1
-        then
-            stdout=
-        else
-            stdout=1
-        fi
-    fi
-    commitish=${commitish:-HEAD}
-    (
-        cd "$(git rev-parse --show-toplevel)" || return
-        toplevel=$PWD
-        description=$(git describe --always "$commitish") || return
-        description=${description#v} || return
-        dirname=$(basename -- "$toplevel") || return
-        prefix="$dirname-$description"
-        tmpdir=$(mktemp --directory) || return
-        trap archiveOp_cleanup EXIT
-        mkdir -p "$tmpdir/$prefix" || return
-        git rev-parse --verify --quiet "$commitish" >/dev/null ||
-            die "error: not a valid object name: \`$commitish'"
-        git archive $wa --prefix="$prefix/" "$commitish" | tar -x -C "$tmpdir" || return
-        if test "$w"
-        then
-            git submodule foreach --quiet --recursive 'git archive '$wa' --prefix="${PWD#'"$toplevel/"'}/" HEAD | tar -x -C '"$tmpdir/$prefix/" || return
-        fi
-        if test "$stdout"
-        then
-            tar -c -f - -C "$tmpdir" "$prefix" || return
-        else
-            tar --use-compress-program="gzip -$num" -c -f "$prefix.tgz" -C "$tmpdir" "$prefix" || return
-        fi
-    )
-}
-
-archiveOp_cleanup () {
-    rm -rf "$tmpdir"
 }
 
 batchUsage () {
@@ -546,6 +425,87 @@ fixupOp_validate () {
         die "error: cannot fixup a merge"
 }
 
+ls_filesUsage () {
+cat <<EOF
+usage: jg ls-files [<options>] [<tree-ish>] [<path> ...]
+
+This is a modified version of \`git-ls-tree', with below differences.
+
+    * Always specify -r.
+    * Output as if --name-only, unless --format was specified.
+    * Recurse into intialized submodules.
+    * <tree-ish> is HEAD, if not specified
+
+See \`git ls-tree --help' for more options.
+EOF
+}
+
+ls_filesOp () {
+    local treeish
+    local format="%(path)"
+    local want_value=
+    local stop_parsing=
+    for arg in "$@"
+    do
+        case $want_value,$stop_parsing,$arg in
+        ,,-h|--help)
+            ls_filesUsage
+            exit 0
+            ;;
+        ,,--format)
+            want_value=$arg
+            ;;
+        ,,--format=*)
+            format=${arg#--format=}
+            ;;
+        ,,--)
+            stop_parsing=1
+            ;;
+        ,,-*)
+            set -- "$@" "$arg"
+            ;;
+        ,*,*)
+            if test ! "${treeish+set}"
+            then
+                treeish=$arg
+            else
+                set -- "$@" "$arg"
+            fi
+            ;;
+        ,*,*)
+            set -- "$@" "$arg"
+            ;;
+        *,*,*)
+            case $want_value in
+            '')
+                ;;
+            --format)
+                format=$arg
+                ;;
+            *)
+                >&2 printf "warning: invalid want_value \`%s'\n" "$want_value"
+                ;;
+            esac
+            want_value=
+            ;;
+        esac
+        shift
+    done
+    test "$want_value" && die "error: \`$want_value' requires a value"
+    ls_tree=$(git ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@")
+    printf "%s" "$ls_tree" | grep '^blob ' | cut -d ' ' -f 2-
+    for displaypath in $(git submodule foreach --quiet --recursive 'echo "$displaypath"')
+    do
+        (
+            cd "$displaypath" || return
+            git ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@" \
+                | grep '^blob ' \
+                | cut -d ' ' -f 2- \
+                | awk '$0 = "'"$displaypath/"'"$0'
+        )
+    done
+}
+
 gh_helpOp () {
 cat <<EOF
 To use \`For GitHub' commands like \`gh-create-repo', first you need to create
@@ -719,13 +679,13 @@ ParseArgs () {
         Usage
         exit
         ;;
-    archive|batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|fixup|ghcr)
+    batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|fixup|ghcr)
         op=$1
         shift
         ${op}Op "$@"
         return
         ;;
-    gh-help|gh-create-repo|gh-delete-repo)
+    ls-files|gh-help|gh-create-repo|gh-delete-repo)
         op=$(printf "%s" "$1" | tr '-' '_')
         shift
         ${op}Op "$@"
