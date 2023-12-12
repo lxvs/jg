@@ -427,10 +427,11 @@ fixupOp_validate () {
 
 ls_filesUsage () {
 cat <<EOF
-usage: jg ls-files [<options>] [<tree-ish>] [<path> ...]
+usage: jg ls-files [-0] [<options>] [<tree-ish>] [<path> ...]
 
 This is a modified version of \`git-ls-tree', with below differences.
 
+    * Add \`-0' to separate paths with null characters instead of newlines.
     * Always specify -r.
     * Output as if --name-only, unless --format was specified.
     * Recurse into intialized submodules.
@@ -445,10 +446,15 @@ ls_filesOp () {
     local format="%(path)"
     local want_value=
     local stop_parsing=
+    local null_char=
+    local output=
     for arg in "$@"
     do
         case $want_value,$stop_parsing,$arg in
-        ,,-h|--help)
+        ,,-0)
+            null_char=1
+            ;;
+        ,,-h|,,--help)
             ls_filesUsage
             exit 0
             ;;
@@ -492,18 +498,19 @@ ls_filesOp () {
         shift
     done
     test "$want_value" && die "error: \`$want_value' requires a value"
-    ls_tree=$(git ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@")
-    printf "%s" "$ls_tree" | grep '^blob ' | cut -d ' ' -f 2-
+    output=$(git ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@")
     for displaypath in $(git submodule foreach --quiet --recursive 'echo "$displaypath"')
     do
-        (
-            cd "$displaypath" || return
-            git ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@" \
-                | grep '^blob ' \
-                | cut -d ' ' -f 2- \
-                | awk '$0 = "'"$displaypath/"'"$0'
-        )
+        output=$(printf "%s\n" "$output" \
+                "$(git -C "$displaypath" ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@" \
+                    | awk '$2 = "'"$displaypath/"'"$2')")
     done
+    if test "$null_char"
+    then
+        printf "%s\n" "$output" | grep '^blob ' | cut -d ' ' -f 2- | tr '\n' '\0'
+    else
+        printf "%s\n" "$output" | grep '^blob ' | cut -d ' ' -f 2-
+    fi
 }
 
 gh_helpOp () {
