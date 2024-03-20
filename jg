@@ -383,14 +383,14 @@ EOF
 }
 
 fixupOp () {
-    local commit= n= options=
+    local commit= n= options= commit_hash=
     fixupOp_parse "$@"
     fixupOp_validate
     git commit --fixup="$commit" $options || return
     test "$n" && return
     git -c sequence.editor=: \
         -c rebase.updateRefs=true \
-        rebase --interactive --autosquash "$commit~2"
+        rebase --interactive --autosquash "$commit_hash~2"
 }
 
 fixupOp_parse () {
@@ -423,6 +423,8 @@ fixupOp_validate () {
     test "$commit" || die "error: <commit> not speficied"
     git rev-parse --verify --quiet --no-revs "$commit^2" &&
         die "error: cannot fixup a merge"
+    commit_hash=$(git rev-parse --verify --revs-only "$commit") ||
+        die "error: invalid revision: $commit"
 }
 
 ls_filesUsage () {
