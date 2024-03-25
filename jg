@@ -375,7 +375,7 @@ It is equivalent to
 
 and then (unless -n or --no-rebase is specified)
 
-    git rebase --interactive --autosquash --update-refs <commit>~2
+    git rebase --interactive --autosquash --autostash --update-refs <commit>~2
 
 and the editor won't pop out.
 
@@ -390,7 +390,7 @@ fixupOp () {
     test "$n" && return
     git -c sequence.editor=: \
         -c rebase.updateRefs=true \
-        rebase --interactive --autosquash "$commit_hash~2"
+        rebase --interactive --autosquash --autostash "$commit_hash~2"
 }
 
 fixupOp_parse () {
