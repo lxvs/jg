@@ -328,7 +328,7 @@ dogOp () {
             matched=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
             test "$matched" ||
                 die "error: \`$arg' matches no branch"
-            set -- "$@" "$matched"
+            set -- "$@" $matched
         else
             set -- "$@" "$arg"
         fi
