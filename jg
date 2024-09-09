@@ -390,7 +390,7 @@ fixupOp () {
     test "$n" && return
     git -c sequence.editor=: \
         -c rebase.updateRefs=true \
-        rebase --interactive --autosquash --autostash "$commit_hash~2"
+        rebase --interactive --autosquash --autostash "$commit_hash~1"
 }
 
 fixupOp_parse () {
