@@ -435,7 +435,7 @@ This is a modified version of \`git-ls-tree', with below differences.
 
     * Add \`-0' to separate paths with null characters instead of newlines.
     * Always specify -r.
-    * Output as if --name-only, unless --format was specified.
+    * Output as if --name-only is specified.
     * Recurse into intialized submodules.
     * <tree-ish> is HEAD, if not specified
 
@@ -445,7 +445,6 @@ EOF
 
 ls_filesOp () {
     local treeish
-    local format="%(path)"
     local want_value=
     local stop_parsing=
     local null_char=
@@ -459,12 +458,6 @@ ls_filesOp () {
         ,,-h|,,--help)
             ls_filesUsage
             exit 0
-            ;;
-        ,,--format)
-            want_value=$arg
-            ;;
-        ,,--format=*)
-            format=${arg#--format=}
             ;;
         ,,--)
             stop_parsing=1
@@ -487,9 +480,6 @@ ls_filesOp () {
             case $want_value in
             '')
                 ;;
-            --format)
-                format=$arg
-                ;;
             *)
                 >&2 printf "warning: invalid want_value \`%s'\n" "$want_value"
                 ;;
@@ -500,18 +490,18 @@ ls_filesOp () {
         shift
     done
     test "$want_value" && die "error: \`$want_value' requires a value"
-    output=$(git ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@")
+    output=$(git ls-tree -z -r -- "${treeish-HEAD}" "$@" | tr '\0' '\n')
     for displaypath in $(git submodule foreach --quiet --recursive 'echo "$displaypath"')
     do
         output=$(printf "%s\n" "$output" \
-                "$(git -C "$displaypath" ls-tree -r --format="%(objecttype) $format" -- "${treeish-HEAD}" "$@" \
-                    | awk '$2 = "'"$displaypath/"'"$2')")
+                "$(git -C "$displaypath" ls-tree -z -r -- "${treeish-HEAD}" "$@" \
+                    | tr '\0' '\n' | awk '{print $1, $2, $3 "\t" ($4 = "'"$displaypath/"'"$4)}')")
     done
     if test "$null_char"
     then
-        printf "%s\n" "$output" | grep '^blob ' | cut -d ' ' -f 2- | tr '\n' '\0'
+        printf "%s\n" "$output" | grep ' blob ' | cut -f 2 | tr '\n' '\0'
     else
-        printf "%s\n" "$output" | grep '^blob ' | cut -d ' ' -f 2-
+        printf "%s\n" "$output" | grep ' blob ' | cut -f 2
     fi
 }
 
