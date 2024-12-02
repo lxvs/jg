@@ -131,22 +131,29 @@ EOF
 
 batchOp () {
     local force= ec= cmd= recursive= submodule= maxdepth= mindepth= deptharg= typearg= forcearg=
+    local stop_parsing=
     while test $# -ge 1
     do
+        if test "$stop_parsing"
+        then
+            cmd="$cmd $1"
+            shift
+            continue
+        fi
         case $1 in
-        -h|--help)
+        --help)
             ${op}Usage
             return
             ;;
-        -f|--force)
+        --force)
             force=1
             shift
             ;;
-        -r|--recursive)
+        --recursive)
             recursive=1
             shift
             ;;
-        -s|--submodule|--submodules|--sub-module|--sub-modules)
+        --submodule|--submodules|--sub-module|--sub-modules)
             submodule=1
             shift
             ;;
@@ -163,6 +170,37 @@ batchOp () {
                 die "error: \`$1' requires a non-negative integer value"
             mindepth=$2
             shift 2
+            ;;
+        --)
+            stop_parsing=1
+            shift
+            ;;
+        -*)
+            flags=${1#-}
+            while test "$flags"
+            do
+                flag=$(printf "%s" "$flags" | cut -b1)
+                case $flag in
+                h)
+                    ${op}Usage
+                    return
+                    ;;
+                f)
+                    force=1
+                    ;;
+                r)
+                    recursive=1
+                    ;;
+                s)
+                    submodule=1
+                    ;;
+                *)
+                    die "error: unknown flag: $flag"
+                    ;;
+                esac
+                flags=${flags#$flag}
+            done
+            shift
             ;;
         *)
             cmd="$cmd $1"
