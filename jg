@@ -117,14 +117,20 @@ batchUsage () {
 cat <<EOF
 usage: jg batch [<options>] <command> [<command-args> ...]
 
-    -f, --force     Do not break when error
+    -f, --force         Do not break when error
+    -r, --recursive     Recurse into subderectories
+    -s, --submodule     Include submodules
+    --maxdepth N        Descend at most N (a non-negative integer) levels of
+                        directories; implies --recursive
+    --mindepth N        Skip at levels less than N (a non-negative integer);
+                        implies --recursive
 
 Execute the specified command for each repository in current directory.
 EOF
 }
 
 batchOp () {
-    local force= ec= cmd=
+    local force= ec= cmd= recursive= submodule= maxdepth= mindepth= deptharg= typearg= forcearg=
     while test $# -ge 1
     do
         case $1 in
@@ -136,25 +142,58 @@ batchOp () {
             force=1
             shift
             ;;
+        -r|--recursive)
+            recursive=1
+            shift
+            ;;
+        -s|--submodule|--submodules|--sub-module|--sub-modules)
+            submodule=1
+            shift
+            ;;
+        --maxdepth)
+            test "${2-}" ||
+                test is_digit "$2" ||
+                die "error: \`$1' requires a non-negative integer value"
+            maxdepth=$2
+            shift 2
+            ;;
+        --mindepth)
+            test "${2-}" ||
+                test is_digit "$2" ||
+                die "error: \`$1' requires a non-negative integer value"
+            mindepth=$2
+            shift 2
+            ;;
         *)
             cmd="$cmd $1"
             shift
             ;;
         esac
     done
-    set +o noglob
-    for repo in */
-    do
-        test ! -e "${repo}.git" && continue
-        (
-            cd "$repo" || return
-            JG_BATCH_REPO=$(basename -- $PWD)
-            git rev-parse 2>/dev/null || return
-            Prompt yellow "$JG_BATCH_REPO"
-            eval "$cmd"
-        ) || test "$force" || break
-    done
-    set -o noglob
+
+    if ! (test "$recursive" || test "$maxdepth" || test "$mindepth")
+    then
+        maxdepth=2
+        mindepth=2
+    fi
+
+    test "$maxdepth" && deptharg="$deptharg-maxdepth $maxdepth "
+    test "$mindepth" && deptharg="$deptharg-mindepth $mindepth "
+    test "$submodule" || typearg="-type d"
+    test "$force" || forcearg='-quit'
+
+    find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf '[93m%h[0m\n' ! -execdir sh -c "$cmd" ';' $forcearg
+}
+
+is_digit() {
+    case $1 in
+    ''|*[!0-9]*)
+        return 1
+        ;;
+    *)
+        return 0
+        ;;
+    esac
 }
 
 bcdiffUsage () {
