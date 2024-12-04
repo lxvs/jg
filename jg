@@ -115,7 +115,7 @@ EOF
 
 batchUsage () {
 cat <<EOF
-usage: jg batch [<options>] <command> [<command-args> ...]
+usage: jg batch [<options>] '<command> [<command-args> ...]'
 
     -f, --force         Do not break when error
     -r, --recursive     Recurse into subderectories
