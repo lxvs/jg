@@ -461,19 +461,10 @@ EOF
 
 fixupOp () {
     local commit= n= options= commit_hash=
-    fixupOp_parse "$@"
-    fixupOp_validate
-    git commit --fixup="$commit" $options || return
-    test "$n" && return
-    git -c sequence.editor=: \
-        -c rebase.updateRefs=true \
-        rebase --interactive --autosquash --autostash "$commit_hash~1"
-}
 
-fixupOp_parse () {
-    while test $# -ge 1
+    for arg in "$@"
     do
-        case $1 in
+        case $arg in
         -h|--help)
             ${op}Usage
             exit
@@ -482,18 +473,45 @@ fixupOp_parse () {
             n=1
             shift
             ;;
+        --*)
+            set -- "$@" "$arg"
+            shift
+            ;;
         -*)
-            options="$options $1"
+            flags=${arg#-}
+            flags_out=
+            while test "$flags"; do
+                flag=$(printf "%s" "$flags" | cut -b1)
+                flags=${flags#$flag}
+                case $flag in
+                    b)
+                        n=1
+                        ;;
+                    *)
+                        flags_out="${flags_out}${flag}"
+                        ;;
+                esac
+            done
+            set -- "$@" "-$flags_out"
             shift
             ;;
         *)
-            test "$commit" &&
-                die "error: invalid argument \`$1'"
-            commit=$1
+            if test "$commit"; then
+                set -- "$@" "$arg"
+            else
+                commit=$arg
+            fi
             shift
             ;;
         esac
     done
+
+    fixupOp_validate
+    git commit --fixup="$commit" "$@" || return
+    test "$n" && return
+    git -c sequence.editor=: \
+        -c rebase.updateRefs=true \
+        rebase --interactive --autosquash --autostash "$commit_hash~1"
 }
 
 fixupOp_validate () {
