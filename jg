@@ -442,15 +442,15 @@ dofOp () {
 
 fixupUsage () {
 cat <<EOF
-usage: jg fixup [-n|--no-rebase] <commit> [<options>]
+usage: jg fixup [-b|--no-rebase] <commit> [<options>]
 
-    -n, --no-rebase     Fixup only; do not rebase
+    -b, --no-rebase     Fixup only; do not rebase
 
 It is equivalent to
 
     git commit --fixup=<commit> [<options>]
 
-and then (unless -n or --no-rebase is specified)
+and then (unless -b or --no-rebase is specified)
 
     git rebase --interactive --autosquash --autostash --update-refs <commit>~2
 
@@ -478,7 +478,7 @@ fixupOp_parse () {
             ${op}Usage
             exit
             ;;
-        -n|--no-rebase)
+        -b|--no-rebase)
             n=1
             shift
             ;;
