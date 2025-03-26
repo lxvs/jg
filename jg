@@ -598,7 +598,7 @@ ls_filesOp () {
     do
         output=$(printf "%s\n" "$output" \
                 "$(git -C "$displaypath" ls-tree -z -r -- "${treeish-HEAD}" "$@" \
-                    | tr '\0' '\n' | awk '{print $1, $2, $3 "\t" ($4 = "'"$displaypath/"'"$4)}')")
+                    | tr '\0' '\n' | awk -F'\t' '{print $1 "\t" ($2 = "'"$displaypath/"'"$2)}')")
     done
     if test "$null_char"
     then
