@@ -158,15 +158,13 @@ batchOp () {
             shift
             ;;
         --maxdepth)
-            test "${2-}" ||
-                test is_digit "$2" ||
+            (test "${2-}" && is_digit "$2") ||
                 die "error: \`$1' requires a non-negative integer value"
             maxdepth=$2
             shift 2
             ;;
         --mindepth)
-            test "${2-}" ||
-                test is_digit "$2" ||
+            (test "${2-}" && is_digit "$2") ||
                 die "error: \`$1' requires a non-negative integer value"
             mindepth=$2
             shift 2
