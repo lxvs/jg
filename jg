@@ -158,16 +158,20 @@ batchOp () {
             shift
             ;;
         --maxdepth)
-            (test "${2-}" && is_digit "$2") ||
-                die "error: \`$1' requires a non-negative integer value"
             maxdepth=$2
             shift 2
             ;;
+        --maxdepth=*)
+            maxdepth=${1#*=}
+            shift
+            ;;
         --mindepth)
-            (test "${2-}" && is_digit "$2") ||
-                die "error: \`$1' requires a non-negative integer value"
             mindepth=$2
             shift 2
+            ;;
+        --mindepth=*)
+            mindepth=${1#*=}
+            shift
             ;;
         --)
             stop_parsing=1
@@ -213,8 +217,14 @@ batchOp () {
         mindepth=2
     fi
 
-    test "$maxdepth" && deptharg="$deptharg-maxdepth $maxdepth "
-    test "$mindepth" && deptharg="$deptharg-mindepth $mindepth "
+    if test "$maxdepth"; then
+        is_digit "$maxdepth" || die "error: \`--maxdepth' requires a non-negative integer value, got: $maxdepth"
+        deptharg="$deptharg-maxdepth $maxdepth "
+    fi
+    if test "$mindepth"; then
+        is_digit "$mindepth" || die "error: \`--mindepth' requires a non-negative integer value, got: $mindepth"
+        deptharg="$deptharg-mindepth $mindepth "
+    fi
     test "$submodule" || typearg="-type d"
     test "$force" || forcearg='-quit'
 
