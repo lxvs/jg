@@ -124,6 +124,10 @@ usage: jg batch [<options>] '<command> [<command-args> ...]'
                         directories; implies --recursive
     --mindepth N        Skip at levels less than N (a non-negative integer);
                         implies --recursive
+    --color[=<when>]    Show colored output. \`--color' is the same as
+                        \`--color=always'. <when> can be one of \`always',
+                        \`never', or \`auto'.
+    --no-color          Disable color output (same as \`--color=never')
 
 Execute the specified command for each repository in current directory.
 EOF
@@ -131,6 +135,7 @@ EOF
 
 batchOp () {
     local force= ec= cmd= recursive= submodule= maxdepth= mindepth= deptharg= typearg= forcearg=
+    local color=auto cpre= csuf=
     local stop_parsing=
     while test $# -ge 1
     do
@@ -171,6 +176,18 @@ batchOp () {
             ;;
         --mindepth=*)
             mindepth=${1#*=}
+            shift
+            ;;
+        --color)
+            color=always
+            shift
+            ;;
+        --color=*)
+            color=${1#*=}
+            shift
+            ;;
+        --no-color)
+            color=never
             shift
             ;;
         --)
@@ -227,8 +244,31 @@ batchOp () {
     fi
     test "$submodule" || typearg="-type d"
     test "$force" || forcearg='-quit'
+    case $color in
+        ''|always)
+            cpre='[93m'
+            csuf='[0m'
+            ;;
+        never)
+            cpre=''
+            csuf=''
+            ;;
+        auto)
+            if ! test -t 1
+            then
+                cpre=''
+                csuf=''
+            else
+                cpre='[93m'
+                csuf='[0m'
+            fi
+            ;;
+        *)
+            die "error: invalid --color option: $color"
+            ;;
+    esac
 
-    find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf '[93m%h[0m\n' ! -execdir sh -c "$cmd" ';' $forcearg
+    find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" ! -execdir sh -c "$cmd" ';' $forcearg
 }
 
 is_digit() {
