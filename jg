@@ -572,80 +572,45 @@ fixupOp_validate () {
 
 ls_filesUsage () {
 cat <<EOF
-usage: jg ls-files [-0] [<options>] [<tree-ish>] [<path> ...]
+usage: jg ls-files [<options>] [<path> ...]
 
-This is a modified version of \`git-ls-tree', with below differences.
+This is a modified version of \`git-ls-files', with below differences.
 
-    * Add \`-0' to separate paths with null characters instead of newlines.
-    * Always specify -r.
-    * Output as if --name-only is specified.
-    * Recurse into intialized submodules.
-    * <tree-ish> is HEAD, if not specified
+    * Always specify --recurse-submodules.
+    * Respect sparse-checkout rules.
 
-See \`git ls-tree --help' for more options.
+See \`git ls-files --help' for more options.
 EOF
 }
 
 ls_filesOp () {
-    local treeish
-    local want_value=
-    local stop_parsing=
-    local null_char=
-    local output=
-    for arg in "$@"
-    do
-        case $want_value,$stop_parsing,$arg in
-        ,,-0)
-            null_char=1
-            ;;
-        ,,-h|,,--help)
-            ls_filesUsage
-            exit 0
-            ;;
-        ,,--)
-            stop_parsing=1
-            ;;
-        ,,-*)
-            set -- "$@" "$arg"
-            ;;
-        ,*,*)
-            if test ! "${treeish+set}"
-            then
-                treeish=$arg
-            else
-                set -- "$@" "$arg"
-            fi
-            ;;
-        ,*,*)
-            set -- "$@" "$arg"
-            ;;
-        *,*,*)
-            case $want_value in
-            '')
+    local z=
+    for arg in "$@"; do
+        case $arg in
+            -h|--help)
+                ls_filesUsage
+                exit 0
                 ;;
-            *)
-                >&2 printf "warning: invalid want_value \`%s'\n" "$want_value"
+            -z)
+                z=1
                 ;;
-            esac
-            want_value=
-            ;;
         esac
-        shift
     done
-    test "$want_value" && die "error: \`$want_value' requires a value"
     git rev-parse || return
-    output=$(git ls-tree -z -r -- "${treeish-HEAD}" "$@" | tr '\0' '\n')
-    for displaypath in $(git submodule foreach --quiet --recursive 'echo "$displaypath"')
-    do
-        output=$(printf "%s\n" "$output" \
-                "$(git -C "$displaypath" ls-tree -z -r -- "${treeish-HEAD}" "$@" \
-                    | tr '\0' '\n' | awk -F'\t' '{print $1 "\t" ($2 = "'"$displaypath/"'"$2)}')")
-    done
-    if test "$null_char"
-    then
-        printf "%s\n" "$output" | grep ' blob ' | cut -f 2 | tr '\n' '\0'
+    if ! test -e "$(git rev-parse --show-toplevel)/.git/info/sparse-checkout"; then
+        git ls-files --recurse-submodules "$@"
     else
-        printf "%s\n" "$output" | grep ' blob ' | cut -f 2
+        if ! test "$z"; then
+            git ls-files --recurse-submodules -t "$@" \
+                | grep '^H ' \
+                | cut -d' ' -f2-
+        else
+            git ls-files --recurse-submodules -t "$@" \
+                | tr '\0' '\n' \
+                | grep '^H ' \
+                | cut -d' ' -f2- \
+                | tr '\n' '\0'
+        fi
     fi
 }
 
