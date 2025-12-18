@@ -5,7 +5,6 @@
 #  * Install fonts used in theme file
 #  * Install 7-zip, or jai, to its default location
 #  * Install Git 2.36.0 or any later version
-#  * Install jg 2.10.0 or any later version
 set -o nounset
 
 archive_cleanup () {
@@ -41,9 +40,12 @@ archive () {
     mkdir "tmp/$fname" || return
     (
         cd "$toplevel" || return
-        jg ls-files \
-            | grep -v '\(^\|/\).git\w\+$' \
-            | grep -v '^release/' \
+        git ls-files --recurse-submodules -t \
+            | grep '^H ' \
+            | cut -d' ' -f2- \
+            | git check-attr --stdin export-ignore \
+            | grep -v ': set$' \
+            | cut -d':' -f1 \
             | tr '\n' '\0' \
             | xargs -0 cp --parents -r -t "$scriptdir/tmp/$fname" \
             || return
