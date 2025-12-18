@@ -194,6 +194,9 @@ batchOp () {
             stop_parsing=1
             shift
             ;;
+        --*)
+            die "error: unknown flag: $1"
+            ;;
         -*)
             flags=${1#-}
             while test "$flags"
