@@ -577,17 +577,17 @@ ls_filesUsage () {
 cat <<EOF
 usage: jg ls-files [<options>] [<path> ...]
 
-This is a modified version of \`git-ls-files', with below differences.
+This is a modified version of \`git-ls-files' with these differences.
 
-    * Always specify --recurse-submodules.
-    * Respect sparse-checkout rules.
+    * Automatically adds --recurse-submodules when applicable.
+    * Respects sparse-checkout rules.
 
-See \`git ls-files --help' for more options.
+See \`git ls-files --help' for more information.
 EOF
 }
 
 ls_filesOp () {
-    local z=
+    local toplevel= z= r=
     for arg in "$@"; do
         case $arg in
             -h|--help)
@@ -599,21 +599,22 @@ ls_filesOp () {
                 ;;
         esac
     done
-    git rev-parse || return
-    if ! test -e "$(git rev-parse --show-toplevel)/.git/info/sparse-checkout"; then
-        git ls-files --recurse-submodules "$@"
+    toplevel=$(git rev-parse --show-toplevel) || return
+    test -e "$toplevel/.gitmodules" && r=--recurse-submodules
+    if ! test -e "$toplevel/.git/info/sparse-checkout"; then
+        git ls-files $r "$@"
+        return
+    fi
+    if ! test "$z"; then
+        git ls-files $r -t "$@" \
+            | grep '^H ' \
+            | cut -d' ' -f2-
     else
-        if ! test "$z"; then
-            git ls-files --recurse-submodules -t "$@" \
-                | grep '^H ' \
-                | cut -d' ' -f2-
-        else
-            git ls-files --recurse-submodules -t "$@" \
-                | tr '\0' '\n' \
-                | grep '^H ' \
-                | cut -d' ' -f2- \
-                | tr '\n' '\0'
-        fi
+        git ls-files $r -t "$@" \
+            | tr '\0' '\n' \
+            | grep '^H ' \
+            | cut -d' ' -f2- \
+            | tr '\n' '\0'
     fi
 }
 
