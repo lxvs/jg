@@ -633,6 +633,7 @@ ls_filesOp () {
         shift
     done
     test "$want_value" && die "error: \`$want_value' requires a value"
+    git rev-parse || return
     output=$(git ls-tree -z -r -- "${treeish-HEAD}" "$@" | tr '\0' '\n')
     for displaypath in $(git submodule foreach --quiet --recursive 'echo "$displaypath"')
     do
