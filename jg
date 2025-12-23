@@ -589,7 +589,7 @@ EOF
 }
 
 ls_filesOp () {
-    local toplevel= z= r= noattr= result=
+    local toplevel= z= r= noattr=
     for arg in "$@"; do
         case $arg in
             -h|--help)
@@ -608,23 +608,55 @@ ls_filesOp () {
     toplevel=$(git rev-parse --show-toplevel) || return
     test -e "$toplevel/.gitmodules" && r=--recurse-submodules
     if ! test -e "$toplevel/.git/info/sparse-checkout"; then
-        result=$(git ls-files $r "$@" | tr '\0' '\n')
+        if ! test "$noattr" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
+            if test "$z"; then
+                git ls-files $r "$@" \
+                    | tr '\0' '\n' \
+                    | git check-attr --stdin export-ignore \
+                    | grep -v ': set$' \
+                    | cut -d':' -f1 \
+                    | tr '\n' '\0'
+            else
+                git ls-files $r "$@" \
+                    | git check-attr --stdin export-ignore \
+                    | grep -v ': set$' \
+                    | cut -d':' -f1
+            fi
+        else
+            git ls-files $r "$@"
+        fi
     else
-        result=$(git ls-files $r -t "$@" \
-            | tr '\0' '\n'\
-            | grep '^H ' \
-            | cut -d' ' -f2-)
-    fi
-    if ! test "$noattr" && printf "%s" "$result" | grep -q '\(^\|/\)\.gitattributes$'; then
-        result=$(printf "%s" "$result" \
-            | git check-attr --stdin export-ignore \
-            | grep -v ': set$' \
-            | cut -d':' -f1)
-    fi
-    if test "$z"; then
-        printf "%s\n" "$result" | tr '\n' '\0'
-    else
-        printf "%s\n" "$result"
+        if ! test "$noattr" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
+            if test "$z"; then
+                git ls-files -t $r "$@" \
+                    | tr '\0' '\n' \
+                    | grep '^H ' \
+                    | cut -d' ' -f2- \
+                    | git check-attr --stdin export-ignore \
+                    | grep -v ': set$' \
+                    | cut -d':' -f1 \
+                    | tr '\n' '\0'
+            else
+                git ls-files -t $r "$@" \
+                    | grep '^H ' \
+                    | cut -d' ' -f2- \
+                    | git check-attr --stdin export-ignore \
+                    | grep -v ': set$' \
+                    | cut -d':' -f1
+            fi
+        else
+            if test "$z"; then
+                git ls-files -t $r "$@" \
+                    | tr '\0' '\n' \
+                    | grep '^H ' \
+                    | cut -d' ' -f2- \
+                    | tr '\n' '\0'
+            else
+                git ls-files -t $r "$@" \
+                    | grep '^H ' \
+                    | cut -d' ' -f2-
+            fi
+        fi
     fi
 }
 
