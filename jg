@@ -16,7 +16,7 @@ Prompt () {
     local green="[92m"
     local yellow="[93m"
     local reset="[0m"
-    local color=$1
+    local color="$1"
     shift
     if ! test -t 1
     then
@@ -66,7 +66,7 @@ LookUpUsage () {
     do
         case $1 in
         -h|--help)
-            ${op}Usage
+            "$op"Usage
             return 1
             ;;
         esac
@@ -134,7 +134,7 @@ EOF
 }
 
 batchOp () {
-    local force= ec= cmd= recursive= submodule= maxdepth= mindepth= deptharg= typearg= forcearg=
+    local force= cmd= recursive= submodule= maxdepth= mindepth= deptharg= typearg= forcearg=
     local color=auto cpre= csuf=
     local stop_parsing=
     while test $# -ge 1
@@ -147,7 +147,7 @@ batchOp () {
         fi
         case $1 in
         --help)
-            ${op}Usage
+            "$op"Usage
             return
             ;;
         --force)
@@ -204,7 +204,7 @@ batchOp () {
                 flag=$(printf "%s" "$flags" | cut -b1)
                 case $flag in
                 h)
-                    ${op}Usage
+                    "$op"Usage
                     return
                     ;;
                 f)
@@ -220,7 +220,7 @@ batchOp () {
                     die "error: unknown flag: $flag"
                     ;;
                 esac
-                flags=${flags#$flag}
+                flags=${flags#"$flag"}
             done
             shift
             ;;
@@ -231,8 +231,7 @@ batchOp () {
         esac
     done
 
-    if ! (test "$recursive" || test "$maxdepth" || test "$mindepth")
-    then
+    if ! { test "$recursive" || test "$maxdepth" || test "$mindepth"; }; then
         maxdepth=2
         mindepth=2
     fi
@@ -271,6 +270,7 @@ batchOp () {
             ;;
     esac
 
+    # shellcheck disable=SC2086
     find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" ! -execdir sh -c "$cmd" ';' $forcearg
 }
 
@@ -471,12 +471,11 @@ dogOp () {
     for arg in "$@"
     do
         test "$arg" = "--" && parsing=
-        if test "$parsing" &&
-            printf "%s" "$arg" | grep -q '\*\|?'
-        then
+        if test "$parsing" && printf "%s" "$arg" | grep -q '\*\|?'; then
             matched=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
             test "$matched" ||
-                die "error: \`$arg' matches no branch"
+                die "error: \`$arg' matches no branch; if it's not a pattern, use \`-- $arg' instead"
+            # shellcheck disable=SC2086
             set -- "$@" $matched
         else
             set -- "$@" "$arg"
@@ -795,7 +794,7 @@ gh_create_repoOp_parse () {
     do
         case $1 in
         -h|--help)
-            ${op}Usage
+            "$op"Usage
             exit
             ;;
         -t|--token)
@@ -856,7 +855,7 @@ gh_delete_repoOp () {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $token" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        https://api.github.com/repos/$owner_slash_repo
+        "https://api.github.com/repos/$owner_slash_repo"
 }
 
 gh_delete_repoOp_parse () {
@@ -864,7 +863,7 @@ gh_delete_repoOp_parse () {
     do
         case $1 in
         -h|--help)
-            ${op}Usage
+            "$op"Usage
             exit
             ;;
         -t|--token)
@@ -910,13 +909,13 @@ ParseArgs () {
     batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|fixup|ghcr)
         op=$1
         shift
-        ${op}Op "$@"
+        "$op"Op "$@"
         return
         ;;
     ls-files|gh-help|gh-create-repo|gh-delete-repo)
         op=$(printf "%s" "$1" | tr '-' '_')
         shift
-        ${op}Op "$@"
+        "$op"Op "$@"
         return
         ;;
     *)
@@ -929,10 +928,10 @@ ParseArgs () {
 main () {
     local version="2.12.0"
     local website="https://github.com/lxvs/jg"
-    local JG_BC_PATH=${JG_BC_PATH-}
-    local JG_GH_USER=${JG_GH_USER-}
-    local JG_GH_TOKEN=${JG_GH_TOKEN-}
-    local OS=${OS-}
+    local JG_BC_PATH="${JG_BC_PATH-}"
+    local JG_GH_USER="${JG_GH_USER-}"
+    local JG_GH_TOKEN="${JG_GH_TOKEN-}"
+    local OS="${OS-}"
     ParseArgs "$@" || return
 }
 
