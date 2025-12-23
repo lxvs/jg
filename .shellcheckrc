@@ -1,0 +1,5 @@
+# Allow space after variable=
+disable=SC1007
+
+# Allow local as it's supported on most shells
+disable=SC3043
