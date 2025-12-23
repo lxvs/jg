@@ -350,7 +350,7 @@ EOF
 }
 
 chidOp () {
-    local pattern= args=
+    local pattern= stop_parsing=
     local commit
     if test $# = 0
     then
@@ -359,22 +359,32 @@ chidOp () {
             sed 's/^Change-Id: //'
         return
     fi
-    while test $# -ge 1
-    do
-        case $1 in
-        -h|--help)
-            ${op}Usage
-            return
-            ;;
-        -*)
-            args="$args $1"
-            shift
-            ;;
-        *)
-            pattern=$1
-            shift
-            break
-            ;;
+    for a in "$@"; do
+        shift
+        case $a in
+            -h|--help)
+                "$op"Usage
+                return
+                ;;
+            --)
+                stop_parsing=1
+                ;;
+            -*)
+                if ! test "$stop_parsing"; then
+                    set -- "$@" "$a"
+                elif test "$pattern"; then
+                    die "error: too many arguments"
+                else
+                    pattern=$a
+                fi
+                ;;
+            *)
+                if test ! "$pattern"; then
+                    pattern=$a
+                else
+                    set -- "$@" "$a"
+                fi
+                ;;
         esac
     done
     git rev-parse || return
@@ -382,7 +392,7 @@ chidOp () {
     commit=$(git rev-list --all --format="%b%H" |
         sed -n "/^Change-Id: I\{0,1\}[[:xdigit:]]\{0,39\}$pattern/{n;p}")
     test "$commit" || return
-    git show --no-patch $args $commit $@
+    git show --no-patch "$commit" "$@"
 }
 
 pushUsage () {
@@ -397,36 +407,47 @@ EOF
 }
 
 pushOp () {
-    local branch= remote= args=
+    local branch= remote= stop_parsing=
     local up rm_d br_d
-    while test $# -ge 1
-    do
-        case $1 in
-        -h|--help)
-            ${op}Usage
-            return
-            ;;
-        -r|--remote)
-            remote=$(ParseSwitchValue "$@")
-            shift 2
-            ;;
-        -*)
-            args="$args $1"
-            shift
-            ;;
-        *)
-            test "$branch" &&
-                die "error: invalid argument: \`$1'"
-            branch=$1
-            shift
-            ;;
+    for a in "$@"; do
+        case $a in
+            -h|--help)
+                "$op"Usage
+                return
+                ;;
+            -r|--remote)
+                remote=$(ParseSwitchValue "$@")
+                shift 2
+                ;;
+            --)
+                stop_parsing=1
+                shift
+                ;;
+            -*)
+                if test ! "$stop_parsing"; then
+                    set -- "$@" "$a"
+                elif test "$branch"; then
+                    die "error: invalid argument: $a"
+                else
+                    branch=$a
+                fi
+                shift
+                ;;
+            *)
+                if test "$branch"; then
+                    die "error: invalid argument: $a"
+                else
+                    branch=$a
+                fi
+                shift
+                ;;
         esac
     done
     git rev-parse || return
     br_d=$(git rev-parse --abbrev-ref HEAD) || return
-    up=$(git rev-parse --abbrev-ref @{push}) || return
-    rm_d="${up%/$br_d}"
-    git push $args ${remote:-$rm_d} HEAD:refs/for/"${branch:-$br_d}"
+    up=$(git rev-parse --abbrev-ref "@{push}") || return
+    rm_d="${up%/"$br_d"}"
+    git push "${remote:-$rm_d}" HEAD:refs/for/"${branch:-$br_d}" "$@"
 }
 
 dogUsage () {
@@ -511,49 +532,47 @@ EOF
 }
 
 fixupOp () {
-    local commit= n= options= commit_hash=
-
-    for arg in "$@"
-    do
+    local commit= n= commit_hash=
+    for arg in "$@"; do
         case $arg in
-        -h|--help)
-            ${op}Usage
-            exit
-            ;;
-        -b|--no-rebase)
-            n=1
-            shift
-            ;;
-        --*)
-            set -- "$@" "$arg"
-            shift
-            ;;
-        -*)
-            flags=${arg#-}
-            flags_out=
-            while test "$flags"; do
-                flag=$(printf "%s" "$flags" | cut -b1)
-                flags=${flags#$flag}
-                case $flag in
-                    b)
-                        n=1
-                        ;;
-                    *)
-                        flags_out="${flags_out}${flag}"
-                        ;;
-                esac
-            done
-            set -- "$@" "-$flags_out"
-            shift
-            ;;
-        *)
-            if test "$commit"; then
+            -h|--help)
+                "$op"Usage
+                return
+                ;;
+            -b|--no-rebase)
+                n=1
+                shift
+                ;;
+            --*)
                 set -- "$@" "$arg"
-            else
-                commit=$arg
-            fi
-            shift
-            ;;
+                shift
+                ;;
+            -*)
+                flags=${arg#-}
+                flags_out=
+                while test "$flags"; do
+                    flag=$(printf "%s" "$flags" | cut -b1)
+                    flags=${flags#"$flag"}
+                    case $flag in
+                        b)
+                            n=1
+                            ;;
+                        *)
+                            flags_out="${flags_out}${flag}"
+                            ;;
+                    esac
+                done
+                set -- "$@" "-$flags_out"
+                shift
+                ;;
+            *)
+                if test "$commit"; then
+                    set -- "$@" "$arg"
+                else
+                    commit=$arg
+                fi
+                shift
+                ;;
         esac
     done
 
