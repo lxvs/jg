@@ -579,6 +579,8 @@ usage: jg ls-files [<options>] [<path> ...]
 
 This is a modified version of \`git-ls-files' with these differences.
 
+    * Check export-ignore if any attribute file is found; use
+      --no-worktree-attributes to disable this behavior.
     * Automatically adds --recurse-submodules when applicable.
     * Respects sparse-checkout rules.
 
@@ -587,7 +589,7 @@ EOF
 }
 
 ls_filesOp () {
-    local toplevel= z= r=
+    local toplevel= z= r= noattr= result=
     for arg in "$@"; do
         case $arg in
             -h|--help)
@@ -597,24 +599,32 @@ ls_filesOp () {
             -z)
                 z=1
                 ;;
+            --no-worktree-attributes)
+                noattr=1
+                shift
+                ;;
         esac
     done
     toplevel=$(git rev-parse --show-toplevel) || return
     test -e "$toplevel/.gitmodules" && r=--recurse-submodules
     if ! test -e "$toplevel/.git/info/sparse-checkout"; then
-        git ls-files $r "$@"
-        return
-    fi
-    if ! test "$z"; then
-        git ls-files $r -t "$@" \
-            | grep '^H ' \
-            | cut -d' ' -f2-
+        result=$(git ls-files $r "$@" | tr '\0' '\n')
     else
-        git ls-files $r -t "$@" \
-            | tr '\0' '\n' \
+        result=$(git ls-files $r -t "$@" \
+            | tr '\0' '\n'\
             | grep '^H ' \
-            | cut -d' ' -f2- \
-            | tr '\n' '\0'
+            | cut -d' ' -f2-)
+    fi
+    if ! test "$noattr" && printf "%s" "$result" | grep -q '\(^\|/\)\.gitattributes$'; then
+        result=$(printf "%s" "$result" \
+            | git check-attr --stdin export-ignore \
+            | grep -v ': set$' \
+            | cut -d':' -f1)
+    fi
+    if test "$z"; then
+        printf "%s\n" "$result" | tr '\n' '\0'
+    else
+        printf "%s\n" "$result"
     fi
 }
 
