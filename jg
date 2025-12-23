@@ -575,60 +575,115 @@ fixupOp_validate () {
 
 ls_filesUsage () {
 cat <<EOF
-usage: jg ls-files [<options>] [<path> ...]
+usage: jg ls-files [<options>]
 
-This is a modified version of \`git-ls-files' with these differences.
+List files tracked by git.
 
-    * Check export-ignore if any attribute file is found; use
-      --no-worktree-attributes to disable this behavior.
-    * Automatically adds --recurse-submodules when applicable.
-    * Respects sparse-checkout rules.
-
-See \`git ls-files --help' for more information.
+Options:
+    --recurse-submodules        Recursively calls ls-files on each active
+                                submodule in the repository.  This is the
+                                default when file \`.gitmodules' exists in root
+                                directory.
+    --no-recurse-submodules     Disable --recurse-submodules.
+    -w, --worktree-attributes   Do not list files marked as export-ignore.
+    --no-worktree-attributes    Disable -w.  This is the default.
+    --sparse                    Do not include sparse files.  This is the
+                                default when the index is sparse.
+    -a, --no-sparse             Disable --sparse.
+    -z                          \\0 line termination on output and do not quote
+                                filenames.
 EOF
 }
 
 ls_filesOp () {
-    local toplevel= z= r= noattr=
+    local toplevel= z= r= w= a=
     for arg in "$@"; do
         case $arg in
             -h|--help)
-                ls_filesUsage
-                exit 0
+                "$op"Usage
+                return
                 ;;
-            -z)
-                z=1
+            --recurse-submodules)
+                r=--recurse-submodules
+                ;;
+            --no-recurse-submodules)
+                r=--no-recurse-submodules
+                ;;
+            -w|--worktree-attributes)
+                w=1
                 ;;
             --no-worktree-attributes)
-                noattr=1
-                shift
+                w=
+                ;;
+            -a|--sparse)
+                a=1
+                ;;
+            --no-sparse)
+                a=
+                ;;
+            -z)
+                z=-z
+                ;;
+            --)
+                ;;
+            --*)
+                die "error: invalid argument: $arg"
+                ;;
+            -*)
+                flags=${arg#-}
+                while test "$flags"; do
+                    flag=$(printf "%s" "$flags" | cut -b1)
+                    case $flag in
+                        h)
+                            "$op"Usage
+                            return
+                            ;;
+                        w)
+                            w=1
+                            ;;
+                        a)
+                            a=1
+                            ;;
+                        z)
+                            z=-z
+                            ;;
+                        *)
+                            die "error: unknown flag: $flag"
+                            ;;
+                    esac
+                    flags=${flags#"$flag"}
+                done
+                ;;
+            *)
+                die "error: invalid argument: $arg"
                 ;;
         esac
+        shift
     done
     toplevel=$(git rev-parse --show-toplevel) || return
-    test -e "$toplevel/.gitmodules" && r=--recurse-submodules
-    if ! test -e "$toplevel/.git/info/sparse-checkout"; then
-        if ! test "$noattr" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
+    test ! "$r" && test -e "$toplevel/.gitmodules" && r=--recurse-submodules
+    if test "$a" || ! test -e "$toplevel/.git/info/sparse-checkout"; then
+        if test "$w" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
             if test "$z"; then
-                git ls-files $r "$@" \
+                git ls-files -z $r \
                     | tr '\0' '\n' \
                     | git check-attr --stdin export-ignore \
                     | grep -v ': set$' \
                     | cut -d':' -f1 \
                     | tr '\n' '\0'
             else
-                git ls-files $r "$@" \
+                git ls-files $r \
                     | git check-attr --stdin export-ignore \
                     | grep -v ': set$' \
                     | cut -d':' -f1
             fi
         else
-            git ls-files $r "$@"
+            git ls-files $z $r
         fi
     else
-        if ! test "$noattr" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
+        if test "$w" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
             if test "$z"; then
-                git ls-files -t $r "$@" \
+                git ls-files -z -t $r \
                     | tr '\0' '\n' \
                     | grep '^H ' \
                     | cut -d' ' -f2- \
@@ -637,7 +692,7 @@ ls_filesOp () {
                     | cut -d':' -f1 \
                     | tr '\n' '\0'
             else
-                git ls-files -t $r "$@" \
+                git ls-files -t $r \
                     | grep '^H ' \
                     | cut -d' ' -f2- \
                     | git check-attr --stdin export-ignore \
@@ -646,13 +701,13 @@ ls_filesOp () {
             fi
         else
             if test "$z"; then
-                git ls-files -t $r "$@" \
+                git ls-files -z -t $r \
                     | tr '\0' '\n' \
                     | grep '^H ' \
                     | cut -d' ' -f2- \
                     | tr '\n' '\0'
             else
-                git ls-files -t $r "$@" \
+                git ls-files -t $r \
                     | grep '^H ' \
                     | cut -d' ' -f2-
             fi
