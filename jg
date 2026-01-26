@@ -1,4 +1,8 @@
 #!/bin/sh
+# SC1007: Allow space after variable=
+# SC3043: Allow local at it is supported on most shells
+# shellcheck disable=SC1007,SC3043
+
 set -o nounset
 set -o noglob
 

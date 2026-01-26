@@ -1,10 +1,15 @@
 #!/bin/sh
+# SC1007: Allow space after variable=
+# SC3043: Allow local at it is supported on most shells
+# shellcheck disable=SC1007,SC3043
+
 # To use this, below things needs to be done first.
 #  * Install Ruby
 #  * Install asciidoctor-pdf with `gem install asciidoctor-pdf'
 #  * Install fonts used in theme file
 #  * Install 7-zip, or jai, to its default location
 #  * Install Git 2.36.0 or any later version
+
 set -o nounset
 
 archive_cleanup () {
@@ -58,9 +63,9 @@ archive () {
             tar -zcf "../$fname.tgz" "$fname" || return
             "$exe7z" a -mx9 "../$fname.7z" "$fname" || return
         ) || return
-        "$exe7z" a -mx9 "$name.7z" * || return
+        "$exe7z" a -mx9 "$name.7z" -- * || return
         cp "../../$name.sfx" . || return
-        cmd //c "copy /b $name.sfx + $name.7z $(cygpath -w "../../$(basename $PWD).exe")" || return
+        cmd //c "copy /b $name.sfx + $name.7z $(cygpath -w "../../$(basename "$PWD").exe")" || return
     ) || return
 }
 
@@ -68,9 +73,16 @@ print_adoc () {
     ls ../*.adoc 1>/dev/null 2>&1 || return 0
     asciidoctor-pdf -a scripts=cjk \
         -a pdf-theme=cjk-theme.yml \
-        -a pdf-fontsdir=$LOCALAPPDATA\\Microsoft\\Windows\\fonts,$WINDIR\\fonts \
-        ../*.adoc \
-        -D .
+        -a pdf-fontsdir="$LOCALAPPDATA\\Microsoft\\Windows\\fonts,$WINDIR\\fonts" \
+        ../readme.adoc \
+        -D . \
+        -o "$name-readme.pdf"
+    asciidoctor -a scripts=cjk \
+        -a webfonts! \
+        -a toc=left \
+        ../readme.adoc \
+        -D . \
+        -o "$name.html"
 }
 
 main () {
