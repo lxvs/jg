@@ -49,16 +49,13 @@ ParseSwitchValue () {
 }
 
 GetBeyondCompare () {
-    local bc_reg_p='HKCU\Software\Scooter Software\Beyond Compare'
-    local bc_reg_k="ExePath"
-    test "$JG_BC_PATH" && bc=$JG_BC_PATH && return
-    printf "%s" "$OS" | grep -qi '^win' ||
-        die "Sorry, this operation is Windows only for now."
-    bc=$(reg query "$bc_reg_p" //v "$bc_reg_k" 2>/dev/null)
-    test "$bc" ||
-        die "error: Couldn't find Beyond Compare." \
-        "Please define the absolute path to bcompare.exe in JG_BC_PATH and restart shell."
-    bc=$(printf "%s" "$bc" | grep "ExePath" | sed 's/\s\{4\}.*\s\{4\}//')
+    test "${JG_BC_PATH-}" && bc=$JG_BC_PATH && return
+    printf "%s" "${OS-}" | grep -qi '^win' || die "error: this command is for Windows only for now."
+    bc="$(cygpath -u "$PROGRAMFILES")/Beyond Compare 4/BComp.exe" && test -x "$bc" && return
+    bc="$(cygpath -u "$PROGRAMFILES") (x86)/Beyond Compare 4/BComp.exe" && test -x "$bc" && return
+    bc="$(cygpath -u "$PROGRAMFILES")/Beyond Compare 3/bcomp.exe" && test -x "$bc" && return
+    bc="$(cygpath -u "$PROGRAMFILES") (x86)/Beyond Compare 3/BComp.exe" && test -x "$bc" && return
+    die "error: Couldn't find Beyond Compare." "Please defined the path to BComp.exe in JG_BC_PATH and restart shell."
 }
 
 LookUpUsage () {
@@ -825,7 +822,7 @@ gh_create_repoOp_validate () {
 
 validate_gh_token () {
     test "$token" ||
-        token=$JG_GH_TOKEN
+        token=${JG_GH_TOKEN-}
     test "$token" ||
         die "error: either provide --token, or set environment variable JG_GH_TOKEN"
 }
@@ -928,10 +925,7 @@ ParseArgs () {
 main () {
     local version="2.12.0"
     local website="https://github.com/lxvs/jg"
-    local JG_BC_PATH="${JG_BC_PATH-}"
     local JG_GH_USER="${JG_GH_USER-}"
-    local JG_GH_TOKEN="${JG_GH_TOKEN-}"
-    local OS="${OS-}"
     ParseArgs "$@" || return
 }
 
