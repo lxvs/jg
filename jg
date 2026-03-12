@@ -116,7 +116,7 @@ EOF
 
 batchUsage () {
 cat <<EOF
-usage: jg batch [<options>] '<command> [<command-args> ...]'
+usage: jg batch [<options>] [--] <command> [<command-args> ...]
 
     -f, --force         Do not break when error
     -r, --recursive     Recurse into subderectories
@@ -135,71 +135,64 @@ EOF
 }
 
 batchOp () {
-    local force= cmd= recursive= submodule= maxdepth= mindepth= deptharg= typearg= forcearg=
+    local force= recursive= submodule= maxdepth= mindepth= deptharg= typearg=
     local color=auto cpre= csuf=
     local stop_parsing=
-    while test $# -ge 1
-    do
-        if test "$stop_parsing"
-        then
-            cmd="$cmd $1"
-            shift
-            continue
-        fi
-        case $1 in
-        --help)
+    for x in "$@"; do
+        case $x,$stop_parsing in
+        --help,)
             "$op"Usage
             return
             ;;
-        --force)
+        --force,)
             force=1
             shift
             ;;
-        --recursive)
+        --recursive,)
             recursive=1
             shift
             ;;
-        --submodule|--submodules|--sub-module|--sub-modules)
+        --submodule,|--submodules,|--sub-module,|--sub-modules,)
             submodule=1
             shift
             ;;
-        --maxdepth)
+        --maxdepth,)
             maxdepth=$2
             shift 2
             ;;
-        --maxdepth=*)
-            maxdepth=${1#*=}
+        --maxdepth=*,)
+            maxdepth=${x#*=}
             shift
             ;;
-        --mindepth)
+        --mindepth,)
             mindepth=$2
             shift 2
             ;;
-        --mindepth=*)
-            mindepth=${1#*=}
+        --mindepth=*,)
+            mindepth=${x#*=}
             shift
             ;;
-        --color)
+        --color,)
             color=always
             shift
             ;;
-        --color=*)
-            color=${1#*=}
+        --color=*,)
+            color=${x#*=}
             shift
             ;;
-        --no-color)
+        --no-color,)
             color=never
             shift
             ;;
-        --)
+        --,)
             stop_parsing=1
             shift
             ;;
-        --*)
-            die "error: unknown flag: $1"
+        --*,)
+            die "error: unknown flag: $x"
             ;;
-        -*)
-            flags=${1#-}
+        -*,)
+            flags=${x#-}
             while test "$flags"
             do
                 flag=$(printf "%s" "$flags" | cut -b1)
@@ -225,8 +218,8 @@ batchOp () {
             done
             shift
             ;;
-        *)
-            cmd="$cmd $1"
+        *,*)
+            set -- "$@" "$x"
             shift
             ;;
         esac
@@ -246,7 +239,6 @@ batchOp () {
         deptharg="$deptharg-mindepth $mindepth "
     fi
     test "$submodule" || typearg="-type d"
-    test "$force" || forcearg='-quit'
     case $color in
         ''|always)
             cpre='[93m'
@@ -271,8 +263,20 @@ batchOp () {
             ;;
     esac
 
-    # shellcheck disable=SC2086
-    find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" ! -execdir sh -c "$cmd" ';' $forcearg
+    # shellcheck disable=SC2016,SC2048,SC2086
+    if test $# -gt 0; then
+        if test $# -eq 1; then
+            set -- ! -execdir "$SHELL" -c -- "$1" ';'
+        else
+            set -- ! -execdir "$SHELL" -c -- '"$0" "$@"' "$@" ';'
+        fi
+
+        test "$force" || set -- "$@" -printf 'exit code not 0, stop\n' -quit
+    fi
+
+
+    # shellcheck disable=SC2086,SC2067
+    find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" "$@"
 }
 
 is_digit() {
