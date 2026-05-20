@@ -590,9 +590,9 @@ fixupOp () {
 
 fixupOp_validate () {
     test "$commit" || die "error: <commit> not speficied"
-    git rev-parse --verify --quiet --no-revs "$commit^2" &&
+    git rev-parse --verify --quiet --no-revs --end-of-options "$commit^2" &&
         die "error: cannot fixup a merge"
-    commit_hash=$(git rev-parse --verify --revs-only "$commit") ||
+    commit_hash=$(git rev-parse --verify --end-of-options "$commit") ||
         die "error: invalid revision: $commit"
 }
 
