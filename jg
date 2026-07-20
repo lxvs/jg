@@ -308,7 +308,7 @@ bcdiffOp () {
     LookUpUsage "$@" || return
     git rev-parse || return
     GetBeyondCompare || return
-    git difftool --dir-diff --extcmd="$bc" "$@"
+    git difftool --no-symlinks --dir-diff --extcmd="$bc" "$@"
 }
 
 bcmergeUsage () {
