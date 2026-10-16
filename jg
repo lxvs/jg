@@ -690,7 +690,7 @@ ls_filesOp () {
             if test "$z"; then
                 git ls-files -z $r \
                     | tr '\0' '\n' \
-                    | git check-attr --stdin export-ignore \
+                    | git -c core.quotePath=false check-attr --stdin export-ignore \
                     | grep -v ': set$' \
                     | cut -d':' -f1 \
                     | tr '\n' '\0'
@@ -707,10 +707,10 @@ ls_filesOp () {
         if test "$w" && git ls-files $r | grep -q '\(^\|/\)\.gitattributes$'; then
             if test "$z"; then
                 git ls-files -z -t $r \
+                    | grep -z '^H ' \
+                    | cut -z -d' ' -f2- \
                     | tr '\0' '\n' \
-                    | grep '^H ' \
-                    | cut -d' ' -f2- \
-                    | git check-attr --stdin export-ignore \
+                    | git -c core.quotePath=false check-attr --stdin export-ignore \
                     | grep -v ': set$' \
                     | cut -d':' -f1 \
                     | tr '\n' '\0'
@@ -723,17 +723,9 @@ ls_filesOp () {
                     | cut -d':' -f1
             fi
         else
-            if test "$z"; then
-                git ls-files -z -t $r \
-                    | tr '\0' '\n' \
-                    | grep '^H ' \
-                    | cut -d' ' -f2- \
-                    | tr '\n' '\0'
-            else
-                git ls-files -t $r \
-                    | grep '^H ' \
-                    | cut -d' ' -f2-
-            fi
+            git ls-files $z -t $r \
+                | grep $z '^H ' \
+                | cut $z -d' ' -f2-
         fi
     fi
 }
