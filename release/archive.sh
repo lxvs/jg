@@ -1,14 +1,15 @@
 #!/bin/sh
+
 # SC1007: Allow space after variable=
-# SC3043: Allow local at it is supported on most shells
+# Allow local at it is supported on most shells
 # shellcheck disable=SC1007,SC3043
 
-# To use this, below things needs to be done first.
-#  * Install Ruby
-#  * Install asciidoctor-pdf with `gem install asciidoctor-pdf'
-#  * Install fonts used in theme file
-#  * Install 7-zip, or jai, to its default location
-#  * Install Git 2.36.0 or any later version
+# Install below things before use:
+#  * Ruby
+#  * asciidoctor-pdf (with `gem install asciidoctor-pdf')
+#  * fonts used in theme file
+#  * 7-zip, or jai, to its default location
+#  * Git 2.36.0 or any later version
 
 set -o nounset
 
@@ -17,18 +18,36 @@ archive_cleanup () {
     rm -rf tmp/
 }
 
+is_windows () {
+    test "${_is_windows++}" && { test "$_is_windows" && return || return; }
+    case $(uname -s) in
+        CYGWIN*|MINGW*|MSYS*)
+            _is_windows=1
+            return 0
+            ;;
+        *)
+            _is_windows=
+            return 1
+            ;;
+    esac
+}
+
 archive () {
-    local fname
-    local exe7z
-    local exe_from_7zip="C:/Program Files/7-Zip/7z.exe"
-    local exe_from_jai="C:/Users/$USERNAME/AppData/Local/Programs/jai/7za.exe"
+    local exe_from_7zip exe_from_jai
     local description toplevel
-    if test -x "$exe_from_7zip"
-    then
-        exe7z=$exe_from_7zip
-    elif test -x "$exe_from_jai"
-    then
-        exe7z=$exe_from_jai
+    if type 7za >/dev/null 2>&1; then
+        exe7z=7za
+    elif is_windows; then
+        exe_from_7zip="C:/Program Files/7-Zip/7z.exe"
+        exe_from_jai="C:/Users/$USERNAME/AppData/Local/Programs/jai/7za.exe"
+        if test -x "$exe_from_7zip"; then
+            exe7z=$exe_from_7zip
+        elif test -x "$exe_from_jai"; then
+            exe7z=$exe_from_jai
+        else
+            >&2 printf "error: no 7-Zip excutable available\n"
+            return 1
+        fi
     else
         >&2 printf "error: no 7-Zip excutable available\n"
         return 1
@@ -40,8 +59,7 @@ archive () {
     toplevel=$(git rev-parse --show-toplevel) || return
     description=$(git describe --always HEAD) || return
     description=${description#v}
-    dirname=$(basename -- "$toplevel") || return
-    fname="$dirname-$description"
+    fname="$name-$description"
     mkdir "tmp/$fname" || return
     (
         cd "$toplevel" || return
@@ -56,41 +74,40 @@ archive () {
             || return
     ) || return
     (
+        set -e
         set +o noglob
-        cd "tmp/$fname" || return
+        cd "tmp/$fname"
         (
-            cd .. || return
-            tar -zcf "../$fname.tgz" "$fname" || return
-            "$exe7z" a -mx9 "../$fname.7z" "$fname" || return
-        ) || return
-        "$exe7z" a -mx9 "$name.7z" -- * || return
-        cp "../../$name.sfx" . || return
-        cmd //c "copy /b $name.sfx + $name.7z $(cygpath -w "../../$(basename "$PWD").exe")" || return
+            cd ..
+            tar -zcf "../$fname.tgz" "$fname"
+            "$exe7z" a -mx9 "../$fname.7z" "$fname"
+        )
+        "$exe7z" a -mx9 "$name.7z" -- *
+        if is_windows; then
+            cmd //c "copy /b ..\\..\\$name.sfx + $name.7z $(cygpath -w "../../$fname.exe")"
+        else
+            cat "../../$name.sfx" "$name.7z" >"../../$(basename "$PWD").exe"
+        fi
     ) || return
 }
 
 print_adoc () {
     ls ../*.adoc 1>/dev/null 2>&1 || return 0
-    asciidoctor-pdf -a scripts=cjk \
-        -a pdf-theme=cjk-theme.yml \
-        -a pdf-fontsdir="$LOCALAPPDATA\\Microsoft\\Windows\\fonts,$WINDIR\\fonts" \
-        ../readme.adoc \
-        -D . \
-        -o "$name-readme.pdf"
     asciidoctor -a scripts=cjk \
         -a webfonts! \
         -a toc=left \
         ../readme.adoc \
         -D . \
-        -o "$name.html"
+        -o "$name/index.html" || return
+    "$exe7z" a -mx9 "$fname-site.7z" -- "$name"
 }
 
 main () {
-    local scriptdir name
-    scriptdir=$(cd "$(dirname "$0")" && PWD) || exit
-    name=$(basename -- "$(cd "$(git rev-parse --show-toplevel)" && PWD)") || exit
+    local scriptdir name fname exe7z _is_windows
+    scriptdir=$(cd "$(dirname "$0")" && pwd) || exit
+    name=$(basename -- "$(cd "$(git rev-parse --show-toplevel)" && pwd)") || exit
     cd "$scriptdir" || exit
-    archive
+    archive || return
     print_adoc
     archive_cleanup
 }
