@@ -56,7 +56,7 @@ ParseSwitchValue ()
     printf "%s" "$2"
 }
 
-Usage ()
+show_help ()
 {
 cat <<\EOF
 usage: jg <command> [<argument> ...]
@@ -73,16 +73,6 @@ commands:
     gh-delete-repo  Delete a GitHub repository
 
 Use `jg <command> --help' for detailed usage on the specific command.
-EOF
-}
-
-Logo ()
-{
-cat <<EOF
-
-    jg $version
-    $website
-
 EOF
 }
 
@@ -651,52 +641,40 @@ gh_delete_repoOp_validate ()
     validate_gh_token
 }
 
-ParseArgs ()
+main ()
 {
+    local version="2.13.0"
     local op
-    if test $# -eq 0
-    then
-        Logo
-        Usage
+    if test $# -eq 0; then
+        show_help
         return
     fi
     case $1 in
-    -V|--version)
-        Logo
-        exit
-        ;;
-    -h|--help)
-        Logo
-        Usage
-        exit
-        ;;
-    batch|fixup|ghcr)
-        op=$1
-        shift
-        "$op"Op "$@"
-        return
-        ;;
-    ls-files|gh-help|gh-create-repo|gh-delete-repo)
-        op=$(printf "%s" "$1" | tr '-' '_')
-        shift
-        "$op"Op "$@"
-        return
-        ;;
-    *)
-        die "error: invalid argument \`$1'" \
-            "Try \`jg --help' for more information."
-        ;;
+        -V|--version)
+            printf "%s\n" "$version"
+            exit
+            ;;
+        -h|--help|-\?)
+            show_help
+            exit
+            ;;
+        batch|fixup|ghcr)
+            op=$1
+            shift
+            "$op"Op "$@"
+            return
+            ;;
+        ls-files|gh-help|gh-create-repo|gh-delete-repo)
+            op=$(printf "%s" "$1" | tr '-' '_')
+            shift
+            "$op"Op "$@"
+            return
+            ;;
+        *)
+            die "error: invalid argument \`$1'" \
+                "Try \`jg --help' for more information."
+            ;;
     esac
-}
-
-main ()
-{
-    set +x
-    local version="2.13.0"
-    local website="https://github.com/lxvs/jg"
-    local JG_GH_USER="${JG_GH_USER-}"
-    reset_x
-    ParseArgs "$@" || return
 }
 
 opt=$-
