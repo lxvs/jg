@@ -86,6 +86,18 @@ cat <<EOF
 EOF
 }
 
+is_digit()
+{
+    case $1 in
+    ''|*[!0-9]*)
+        return 1
+        ;;
+    *)
+        return 0
+        ;;
+    esac
+}
+
 batchUsage ()
 {
 cat <<EOF
@@ -253,16 +265,13 @@ batchOp ()
     find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" "$@"
 }
 
-is_digit()
+fixupOp_validate ()
 {
-    case $1 in
-    ''|*[!0-9]*)
-        return 1
-        ;;
-    *)
-        return 0
-        ;;
-    esac
+    test "$commit" || die "error: <commit> not speficied"
+    git rev-parse --verify --quiet --no-revs --end-of-options "$commit^2" &&
+        die "error: cannot fixup a merge"
+    commit_hash=$(git rev-parse --verify --end-of-options "$commit") ||
+        die "error: invalid revision: $commit"
 }
 
 fixupUsage ()
@@ -337,15 +346,6 @@ fixupOp ()
     git -c sequence.editor=: \
         -c rebase.updateRefs=true \
         rebase --interactive --autosquash --autostash "$commit_hash~1"
-}
-
-fixupOp_validate ()
-{
-    test "$commit" || die "error: <commit> not speficied"
-    git rev-parse --verify --quiet --no-revs --end-of-options "$commit^2" &&
-        die "error: cannot fixup a merge"
-    commit_hash=$(git rev-parse --verify --end-of-options "$commit") ||
-        die "error: invalid revision: $commit"
 }
 
 ls_filesUsage ()
