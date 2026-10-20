@@ -432,7 +432,7 @@ EOF
 pushOp ()
 {
     local branch= remote= stop_parsing=
-    local up rm_d br_d
+    local up br_d
     for a in "$@"; do
         case $a in
             -h|--help)
@@ -468,10 +468,17 @@ pushOp ()
         esac
     done
     git rev-parse || return
-    br_d=$(git rev-parse --abbrev-ref HEAD) || return
-    up=$(git rev-parse --abbrev-ref "@{push}") || return
-    rm_d="${up%/"$br_d"}"
-    git push "${remote:-$rm_d}" HEAD:refs/for/"${branch:-$br_d}" "$@"
+    if test ! "branch" || test ! "$remote"; then
+        br_d=$(git rev-parse --abbrev-ref HEAD) || return
+        if test "$br_d" = "HEAD"; then
+            die "error: neither on a branch, nor specified one"
+        fi
+    fi
+    if test ! "$remote"; then
+        up=$(git rev-parse --abbrev-ref "@{push}") || return
+        remote="${up%/"$br_d"}"
+    fi
+    git push "$remote" HEAD:refs/for/"${branch:-$br_d}" "$@"
 }
 
 dogUsage ()
