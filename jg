@@ -4,55 +4,60 @@
 # shellcheck disable=SC1007,SC3043
 
 set -o nounset
-set -o noglob
 
-die () {
+reset_x ()
+{
+    printf "%s" "$opt" | grep -q 'x' && set -x
+}
+
+set_color ()
+{
+    set +x
+    test -t 1 || return
+    case $1 in
+    red)
+        printf "[91m"
+        ;;
+    green)
+        printf "[92m"
+        ;;
+    yellow)
+        printf "[93m"
+        ;;
+    *)
+        ;;
+    esac
+}
+
+reset_color ()
+{
+    test -t 1 || { reset_x; return; }
+    printf "[0m"
+    reset_x
+    return 0
+}
+
+die ()
+{
+    set_color >&2 red
     while test $# -ge 1
     do
-        Prompt >&2 red "$1"
+        printf >&2 "%s\n" "$1"
         shift
     done
+    reset_color >&2
     exit 1
 }
 
-Prompt () {
-    local red="[91m"
-    local green="[92m"
-    local yellow="[93m"
-    local reset="[0m"
-    local color="$1"
-    shift
-    if ! test -t 1
-    then
-        printf "%s\n" "$@"
-        return
-    fi
-    case $color in
-    r|red)
-        color=$red
-        ;;
-    g|grn|green)
-        color=$green
-        ;;
-    y|ylw|yellow)
-        color=$yellow
-        ;;
-    *)
-        printf >&2 "warning: invalid color \`%s'\n" "$color"
-        printf "%s\n" "$@"
-        return
-        ;;
-    esac
-    printf "${color}%s${reset}\n" "$@"
-}
-
-ParseSwitchValue () {
+ParseSwitchValue ()
+{
     test "$#" -ge 2 ||
         die "error: \`$1' requires a value"
     printf "%s" "$2"
 }
 
-GetBeyondCompare () {
+GetBeyondCompare ()
+{
     test "${JG_BC_PATH-}" && bc=$JG_BC_PATH && return
     printf "%s" "${OS-}" | grep -qi '^win' || die "error: this command is for Windows only for now."
     bc="$(cygpath -u "$PROGRAMFILES")/Beyond Compare 4/BComp.exe" && test -x "$bc" && return
@@ -62,7 +67,8 @@ GetBeyondCompare () {
     die "error: Couldn't find Beyond Compare." "Please defined the path to BComp.exe in JG_BC_PATH and restart shell."
 }
 
-LookUpUsage () {
+LookUpUsage ()
+{
     while test $# -ge 1
     do
         case $1 in
@@ -75,7 +81,8 @@ LookUpUsage () {
     done
 }
 
-Usage () {
+Usage ()
+{
 cat <<EOF
 usage: jg [-v | --version] [-h | --help] <command> [<args>]
 
@@ -105,7 +112,8 @@ Use \`jg <command> --help' for detailed usage on the specific command.
 EOF
 }
 
-Logo () {
+Logo ()
+{
 cat <<EOF
 
     jg $version
@@ -114,7 +122,8 @@ cat <<EOF
 EOF
 }
 
-batchUsage () {
+batchUsage ()
+{
 cat <<EOF
 usage: jg batch [<options>] [--] <command> [<command-args> ...]
 
@@ -134,7 +143,8 @@ Execute the specified command for each repository in current directory.
 EOF
 }
 
-batchOp () {
+batchOp ()
+{
     local force= recursive= submodule= maxdepth= mindepth= deptharg= typearg=
     local color=auto cpre= csuf=
     local stop_parsing=
@@ -279,7 +289,8 @@ batchOp () {
     find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" "$@"
 }
 
-is_digit() {
+is_digit()
+{
     case $1 in
     ''|*[!0-9]*)
         return 1
@@ -290,7 +301,8 @@ is_digit() {
     esac
 }
 
-bcdiffUsage () {
+bcdiffUsage ()
+{
 cat <<EOF
 usage: jg bcdiff [<options>] [<commit> [<commit>]] [--] [<path>...]
 
@@ -303,7 +315,8 @@ Compare.
 EOF
 }
 
-bcdiffOp () {
+bcdiffOp ()
+{
     local bc=
     LookUpUsage "$@" || return
     git rev-parse || return
@@ -311,7 +324,8 @@ bcdiffOp () {
     git difftool --no-symlinks --dir-diff --extcmd="$bc" "$@"
 }
 
-bcmergeUsage () {
+bcmergeUsage ()
+{
 cat <<EOF
 usage: jg bcmerge [<file to merge> ...]
 
@@ -332,7 +346,8 @@ Compare.
 EOF
 }
 
-bcmergeOp () {
+bcmergeOp ()
+{
     local bc=
     LookUpUsage "$@" || return
     git rev-parse || return
@@ -343,7 +358,8 @@ bcmergeOp () {
         mergetool "$@"
 }
 
-chidUsage () {
+chidUsage ()
+{
 cat <<EOF
 usage: jg chid [<options>] <pattern>
    or: jg chid
@@ -354,7 +370,8 @@ passed to git-show.
 EOF
 }
 
-chidOp () {
+chidOp ()
+{
     local pattern= stop_parsing=
     local commit
     if test $# = 0
@@ -400,7 +417,8 @@ chidOp () {
     git show --no-patch "$commit" "$@"
 }
 
-pushUsage () {
+pushUsage ()
+{
 cat <<EOF
 usage: jg push [-r <remote>] [<branch>] [<options>]
 
@@ -411,7 +429,8 @@ Default <remote> and <branch> are the current. this command is equivalent to:
 EOF
 }
 
-pushOp () {
+pushOp ()
+{
     local branch= remote= stop_parsing=
     local up rm_d br_d
     for a in "$@"; do
@@ -455,7 +474,8 @@ pushOp () {
     git push "${remote:-$rm_d}" HEAD:refs/for/"${branch:-$br_d}" "$@"
 }
 
-dogUsage () {
+dogUsage ()
+{
 cat <<EOF
 jg dog = git log --decorate --oneline --graph
 jg adog = git log --all --decorate --oneline --graph
@@ -470,7 +490,8 @@ ones.
 EOF
 }
 
-dogOp () {
+dogOp ()
+{
     local parsing=1 matched
     LookUpUsage "$@" || return
     for arg in "$@"
@@ -490,33 +511,40 @@ dogOp () {
     git log --decorate --oneline --graph "$@"
 }
 
-dogrUsage () {
+dogrUsage ()
+{
     dogUsage
 }
 
-dogrOp () {
+dogrOp ()
+{
     local isdogr=1
     dogOp "$@"
 }
 
-adogUsage () {
+adogUsage ()
+{
     dogUsage
 }
 
-adogOp () {
+adogOp ()
+{
     dogOp --all "$@"
 }
 
-dofUsage () {
+dofUsage ()
+{
     dogUsage
 }
 
-dofOp () {
+dofOp ()
+{
     LookUpUsage "$@" || return
     git log --decorate --oneline --first-parent "$@"
 }
 
-fixupUsage () {
+fixupUsage ()
+{
 cat <<EOF
 usage: jg fixup [-b|--no-rebase] <commit> [<options>]
 
@@ -535,7 +563,8 @@ and the editor won't pop out.
 EOF
 }
 
-fixupOp () {
+fixupOp ()
+{
     local commit= n= commit_hash=
     for arg in "$@"; do
         case $arg in
@@ -588,7 +617,8 @@ fixupOp () {
         rebase --interactive --autosquash --autostash "$commit_hash~1"
 }
 
-fixupOp_validate () {
+fixupOp_validate ()
+{
     test "$commit" || die "error: <commit> not speficied"
     git rev-parse --verify --quiet --no-revs --end-of-options "$commit^2" &&
         die "error: cannot fixup a merge"
@@ -596,7 +626,8 @@ fixupOp_validate () {
         die "error: invalid revision: $commit"
 }
 
-ls_filesUsage () {
+ls_filesUsage ()
+{
 cat <<EOF
 usage: jg ls-files [<options>]
 
@@ -618,7 +649,8 @@ Options:
 EOF
 }
 
-ls_filesOp () {
+ls_filesOp ()
+{
     local toplevel= z= r= w= a=
     for arg in "$@"; do
         case $arg in
@@ -730,7 +762,8 @@ ls_filesOp () {
     fi
 }
 
-gh_helpOp () {
+gh_helpOp ()
+{
 cat <<EOF
 To use \`For GitHub' commands like \`gh-create-repo', first you need to create
 a personal access token.
@@ -747,15 +780,18 @@ a personal access token.
 EOF
 }
 
-ghcrUsage () {
+ghcrUsage ()
+{
     gh_create_repoUsage
 }
 
-ghcrOp () {
+ghcrOp ()
+{
     gh_create_repoOp "$@"
 }
 
-gh_create_repoUsage () {
+gh_create_repoUsage ()
+{
 cat <<EOF
 usage: jg gh-create-repo [<options>] <name>
 
@@ -773,7 +809,8 @@ Try \`jg gh-help' for more information on GitHub personal access token.
 EOF
 }
 
-gh_create_repoOp () {
+gh_create_repoOp ()
+{
     local token= name=
     local private
     gh_create_repoOp_parse "$@"
@@ -786,7 +823,8 @@ gh_create_repoOp () {
         -d "{\"name\": \"$name\"${private:+, \"private\": true}}"
 }
 
-gh_create_repoOp_parse () {
+gh_create_repoOp_parse ()
+{
     while test $# -ge 1
     do
         case $1 in
@@ -812,7 +850,8 @@ gh_create_repoOp_parse () {
     done
 }
 
-gh_create_repoOp_validate () {
+gh_create_repoOp_validate ()
+{
     test "$name" ||
         die "error: Repo name is required."
     test "$(printf "%s" "$name" | tr -d '[:alnum:]\-_.')" &&
@@ -820,14 +859,16 @@ gh_create_repoOp_validate () {
     validate_gh_token
 }
 
-validate_gh_token () {
+validate_gh_token ()
+{
     test "$token" ||
         token=${JG_GH_TOKEN-}
     test "$token" ||
         die "error: either provide --token, or set environment variable JG_GH_TOKEN"
 }
 
-gh_delete_repoUsage () {
+gh_delete_repoUsage ()
+{
 cat <<EOF
 usage: jg gh-delete-repo [<options>] <owner>/<repo>
 
@@ -843,7 +884,8 @@ Try \`jg gh-help' for more information on GitHub personal access token.
 EOF
 }
 
-gh_delete_repoOp () {
+gh_delete_repoOp ()
+{
     local owner_slash_repo= token=
     gh_delete_repoOp_parse "$@"
     gh_delete_repoOp_validate
@@ -855,7 +897,8 @@ gh_delete_repoOp () {
         "https://api.github.com/repos/$owner_slash_repo"
 }
 
-gh_delete_repoOp_parse () {
+gh_delete_repoOp_parse ()
+{
     while test $# -ge 1
     do
         case $1 in
@@ -877,7 +920,8 @@ gh_delete_repoOp_parse () {
     done
 }
 
-gh_delete_repoOp_validate () {
+gh_delete_repoOp_validate ()
+{
     test "$owner_slash_repo" ||
         die "error: owner and repo is required."
     test "$(printf "%s" "$owner_slash_repo" | tr -dc '/')" ||
@@ -885,7 +929,8 @@ gh_delete_repoOp_validate () {
     validate_gh_token
 }
 
-ParseArgs () {
+ParseArgs ()
+{
     local op
     if test $# -eq 0
     then
@@ -922,11 +967,16 @@ ParseArgs () {
     esac
 }
 
-main () {
+main ()
+{
+    set +x
     local version="2.13.0"
     local website="https://github.com/lxvs/jg"
     local JG_GH_USER="${JG_GH_USER-}"
+    reset_x
     ParseArgs "$@" || return
 }
+
+opt=$-
 
 main "$@"
