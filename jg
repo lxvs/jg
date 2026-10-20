@@ -56,59 +56,23 @@ ParseSwitchValue ()
     printf "%s" "$2"
 }
 
-GetBeyondCompare ()
-{
-    test "${JG_BC_PATH-}" && bc=$JG_BC_PATH && return
-    printf "%s" "${OS-}" | grep -qi '^win' || die "error: this command is for Windows only for now."
-    bc="$(cygpath -u "$PROGRAMFILES")/Beyond Compare 4/BComp.exe" && test -x "$bc" && return
-    bc="$(cygpath -u "$PROGRAMFILES") (x86)/Beyond Compare 4/BComp.exe" && test -x "$bc" && return
-    bc="$(cygpath -u "$PROGRAMFILES")/Beyond Compare 3/bcomp.exe" && test -x "$bc" && return
-    bc="$(cygpath -u "$PROGRAMFILES") (x86)/Beyond Compare 3/BComp.exe" && test -x "$bc" && return
-    die "error: Couldn't find Beyond Compare." "Please defined the path to BComp.exe in JG_BC_PATH and restart shell."
-}
-
-LookUpUsage ()
-{
-    while test $# -ge 1
-    do
-        case $1 in
-        -h|--help)
-            "$op"Usage
-            return 1
-            ;;
-        esac
-        shift
-    done
-}
-
 Usage ()
 {
-cat <<EOF
-usage: jg [-v | --version] [-h | --help] <command> [<args>]
+cat <<\EOF
+usage: jg <command> [<argument> ...]
+   or: jg -h | --help
+   or: jg -V | --version
 
-These are all commands used in various situations:
-
-do things
-    bcmerge     Resolve merge conflicts using Beyond Compare
+commands:
     batch       Execute a command for each repo in current directory
     fixup       Fixup a commit and auto squashing rebase it non-interactively
-    push        Push local commits to Gerrit for review
-
-examine things
-    bcdiff      Show changes using Beyond Compare
-    chid        Find a commit using given pattern; or get current Change-Id
-    dog         Show commit logs a better way
-    dogr        Show commit logs a better way
-    adog        Show all commit logs a better way
-    dof         Show commit logs a better way, first parent only
     ls-files    List all files, including initialized submodules by default
 
-for GitHub
     gh-help         Show help on the prerequisites to use below commands
     gh-create-repo  Create a public or private GitHub repository
     gh-delete-repo  Delete a GitHub repository
 
-Use \`jg <command> --help' for detailed usage on the specific command.
+Use `jg <command> --help' for detailed usage on the specific command.
 EOF
 }
 
@@ -299,255 +263,6 @@ is_digit()
         return 0
         ;;
     esac
-}
-
-bcdiffUsage ()
-{
-cat <<EOF
-usage: jg bcdiff [<options>] [<commit> [<commit>]] [--] [<path>...]
-
-Show changes using Beyond Compare. Options will be passed to git-difftool.
-Try \`git difftool -h' or \`git help difftool' for more information.
-
-Path to Beyond Compare will be queried from Registry; it can be overridden
-by setting environment variable JG_BC_PATH to the absolute path to Beyound
-Compare.
-EOF
-}
-
-bcdiffOp ()
-{
-    local bc=
-    LookUpUsage "$@" || return
-    git rev-parse || return
-    GetBeyondCompare || return
-    git difftool --no-symlinks --dir-diff --extcmd="$bc" "$@"
-}
-
-bcmergeUsage ()
-{
-cat <<EOF
-usage: jg bcmerge [<file to merge> ...]
-
-Resolve merge conflicts using Beyond Compare. If <file to merge> is not
-specified, resolve all conflicted files one by one.
-
-By default, git creates \`*.orig' backup files while resolving merges. These
-are safe to remove once a file has been merged and its git mergetool
-session has completed.
-
-Setting the mergetool.keepBackup configuration variable to false causes git
-mergetool to automatically remove the backup as files are successfully
-merged.
-
-Path to Beyond Compare will be queried from Registry; it can be overridden
-by setting environment variable JG_BC_PATH to the absolute path to Beyound
-Compare.
-EOF
-}
-
-bcmergeOp ()
-{
-    local bc=
-    LookUpUsage "$@" || return
-    git rev-parse || return
-    GetBeyondCompare || return
-    git -c "merge.tool=bcjg" \
-        -c "mergetool.bcjg.cmd=\"${bc}\" \"\$LOCAL\" \"\$REMOTE\" \"\$BASE\" \"\$MERGED\"" \
-        -c "mergetool.bcjg.trustExitCode=true" \
-        mergetool "$@"
-}
-
-chidUsage ()
-{
-cat <<EOF
-usage: jg chid [<options>] <pattern>
-   or: jg chid
-
-Find a commit whose Gerrit Change-Id matches given sed-regex pattern. If no
-pattern was specified, get the Change-Id of the current commit. Options will be
-passed to git-show.
-EOF
-}
-
-chidOp ()
-{
-    local pattern= stop_parsing=
-    local commit
-    if test $# = 0
-    then
-        git show --no-patch HEAD --format=%b |
-            grep '^Change-Id: ' |
-            sed 's/^Change-Id: //'
-        return
-    fi
-    for a in "$@"; do
-        shift
-        case $a in
-            -h|--help)
-                "$op"Usage
-                return
-                ;;
-            --)
-                stop_parsing=1
-                ;;
-            -*)
-                if ! test "$stop_parsing"; then
-                    set -- "$@" "$a"
-                elif test "$pattern"; then
-                    die "error: too many arguments"
-                else
-                    pattern=$a
-                fi
-                ;;
-            *)
-                if test ! "$pattern"; then
-                    pattern=$a
-                else
-                    set -- "$@" "$a"
-                fi
-                ;;
-        esac
-    done
-    git rev-parse || return
-    test "$pattern" || return
-    commit=$(git rev-list --all --format="%b%H" |
-        sed -n "/^Change-Id: I\{0,1\}[[:xdigit:]]\{0,39\}$pattern/{n;p}")
-    test "$commit" || return
-    git show --no-patch "$commit" "$@"
-}
-
-pushUsage ()
-{
-cat <<EOF
-usage: jg push [-r <remote>] [<branch>] [<options>]
-
-Push local commits to Gerrit for review. Options will be passed to git-push.
-Default <remote> and <branch> are the current. this command is equivalent to:
-
-    git push [<options>] <remote> HEAD:refs/for/<branch>
-EOF
-}
-
-pushOp ()
-{
-    local branch= remote= stop_parsing=
-    local up br_d
-    for a in "$@"; do
-        case $a in
-            -h|--help)
-                "$op"Usage
-                return
-                ;;
-            -r|--remote)
-                remote=$(ParseSwitchValue "$@")
-                shift 2
-                ;;
-            --)
-                stop_parsing=1
-                shift
-                ;;
-            -*)
-                if test ! "$stop_parsing"; then
-                    set -- "$@" "$a"
-                elif test "$branch"; then
-                    die "error: invalid argument: $a"
-                else
-                    branch=$a
-                fi
-                shift
-                ;;
-            *)
-                if test "$branch"; then
-                    die "error: invalid argument: $a"
-                else
-                    branch=$a
-                fi
-                shift
-                ;;
-        esac
-    done
-    git rev-parse || return
-    if test ! "branch" || test ! "$remote"; then
-        br_d=$(git rev-parse --abbrev-ref HEAD) || return
-        if test "$br_d" = "HEAD"; then
-            die "error: neither on a branch, nor specified one"
-        fi
-    fi
-    if test ! "$remote"; then
-        up=$(git rev-parse --abbrev-ref "@{push}") || return
-        remote="${up%/"$br_d"}"
-    fi
-    git push "$remote" HEAD:refs/for/"${branch:-$br_d}" "$@"
-}
-
-dogUsage ()
-{
-cat <<EOF
-jg dog = git log --decorate --oneline --graph
-jg adog = git log --all --decorate --oneline --graph
-jg dof = git log --decorate --oneline --first-parent
-
-You can use wildcards when specifying branches, but make sure to quote them
-in this case, otherwise Shell will expand wildcards to filenames.
-
-jg dogr is similar to jg dog; the only difference is that when wildcards
-are used, dogr matches only remote branches while dog matches only local
-ones.
-EOF
-}
-
-dogOp ()
-{
-    local parsing=1 matched
-    LookUpUsage "$@" || return
-    for arg in "$@"
-    do
-        test "$arg" = "--" && parsing=
-        if test "$parsing" && printf "%s" "$arg" | grep -q '\*\|?'; then
-            matched=$(git branch --format='%(refname:short)' ${isdogr+"-r"} -l "$arg")
-            test "$matched" ||
-                die "error: \`$arg' matches no branch; if it's not a pattern, use \`-- $arg' instead"
-            # shellcheck disable=SC2086
-            set -- "$@" $matched
-        else
-            set -- "$@" "$arg"
-        fi
-        shift
-    done
-    git log --decorate --oneline --graph "$@"
-}
-
-dogrUsage ()
-{
-    dogUsage
-}
-
-dogrOp ()
-{
-    local isdogr=1
-    dogOp "$@"
-}
-
-adogUsage ()
-{
-    dogUsage
-}
-
-adogOp ()
-{
-    dogOp --all "$@"
-}
-
-dofUsage ()
-{
-    dogUsage
-}
-
-dofOp ()
-{
-    LookUpUsage "$@" || return
-    git log --decorate --oneline --first-parent "$@"
 }
 
 fixupUsage ()
@@ -946,7 +661,7 @@ ParseArgs ()
         return
     fi
     case $1 in
-    -v|--version)
+    -V|--version)
         Logo
         exit
         ;;
@@ -955,7 +670,7 @@ ParseArgs ()
         Usage
         exit
         ;;
-    batch|bcdiff|bcmerge|chid|push|dog|dogr|adog|dof|fixup|ghcr)
+    batch|fixup|ghcr)
         op=$1
         shift
         "$op"Op "$@"
