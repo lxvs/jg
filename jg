@@ -114,6 +114,7 @@ batchOp ()
     local force= recursive= submodule= maxdepth= mindepth= deptharg= typearg=
     local color=auto cpre= csuf=
     local stop_parsing=
+    local PATH="${PATH-}"
     for x in "$@"; do
         case $x,$stop_parsing in
         --help,)
@@ -250,6 +251,9 @@ batchOp ()
         test "$force" || set -- "$@" -printf 'exit code not 0, stop\n' -quit
     fi
 
+    if test "$PATH" && printf ":%s\n" "$PATH" | grep -Eq ':[^/]'; then
+        PATH=$(printf "%s\n" "$PATH" | tr ':' '\n' | grep -v '^[^/]' | tr '\n' ':' | sed 's/:$//') || return
+    fi
 
     # shellcheck disable=SC2086,SC2067
     find . $deptharg -name .git ! -path '*/.git/*' $typearg -printf "$cpre%h$csuf\n" "$@"
